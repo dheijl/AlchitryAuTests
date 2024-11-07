@@ -1,0 +1,20 @@
+module multi_hex_counter #(
+    DIGITS = 4 : DIGITS >= 2  // number of digits
+) (
+    input clk,                // clock
+    input rst,                // reset
+    input inc,                // increment counter
+    output digits[DIGITS][4]  // digit values
+) {
+    .clk(clk), .rst(rst) {
+        hex_counter hctr[DIGITS] // digit counters
+    }
+    
+    always {
+        hctr.inc[0] = inc   // increment the first digit
+        digits = hctr.value // output the values
+        
+        // if the previous digit overflows, increment the next
+        hctr.inc[1+:DIGITS-1] = hctr.ovf[0+:DIGITS-1]
+    }
+}
