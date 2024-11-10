@@ -1,4 +1,6 @@
 */build/**
 */cores/**
 */Fake\ Pull-downs/**
+*.bit
+
 
