@@ -1,0 +1,14 @@
+// single bit full adder
+module full_adder (
+    input x,
+    input y,
+    input cin,
+    output sum,
+    output cout
+){
+    // logic
+    always {
+        sum = x ^ y ^ cin
+        cout = (x & y) | (x & cin) | (y & cin)
+    }
+}
