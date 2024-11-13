@@ -11,15 +11,32 @@ module alchitry_top (
     input io_button[5],     // 5 buttons on IO Shield
     input io_dip[3][8]      // DIP switches on IO Shield
 ) {
+    // the push buttons
+    const UP = 0
+    const CENTER = 1
+    const DOWN = 2
+    const LEFT = 3
+    const RIGHT = 4
+    const NBUTTONS = 5
+    
+    sig add
+    sig sub
+    sig nxt
+    sig prv
+    sig go
     
     sig rst                 
     
     var_adder adder(#BITS(8))    
     
+    
     .clk(clk) {
         // The reset coditioner is used to synchronize the reset signal to the FPGA
         // clock. This ensures the entire FPGA comes out of reset at the same time.
         reset_conditioner reset_cond
+        
+        btn_press btn_chk[NBUTTONS];
+     
         .rst(rst) {
         }
     }
@@ -30,6 +47,26 @@ module alchitry_top (
         rst = reset_cond.out    // conditioned reset
         
         led = 8h00            // leds
+
+        //add = io_button[UP]
+        
+        btn_chk.btn_in[NBUTTONS-1:0] = io_button;
+        add = btn_chk.btn_down[UP]     
+        sub = btn_chk.btn_down[DOWN]
+        nxt = btn_chk.btn_down[LEFT];
+        prv = btn_chk.btn_down[RIGHT];
+        go = btn_chk.btn_down[CENTER];
+        led[0] = add;
+        led[1] = sub;
+        led[2] = nxt;
+        led[3] = prv;
+        led[4] = go;
+        
+        if (go) { 
+            led[7] = 1b1 
+        } else { 
+            led[7] = 1b0 
+        }
         
         usb_tx = usb_rx        // loop serial port
         io_segment = 8h_f_f
@@ -43,6 +80,6 @@ module alchitry_top (
         io_led[2][0] = adder.cout  // carry out
         
         
-        io_led[2][7] = io_button[0]
+        io_led[2][7] = io_button[UP]
     }
 }

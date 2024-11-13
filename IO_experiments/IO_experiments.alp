@@ -25,18 +25,6 @@
             },
             {
                 "file": {
-                    "type": "Component",
-                    "path": "Conditioning/button_conditioner.luc"
-                }
-            },
-            {
-                "file": {
-                    "type": "Component",
-                    "path": "Pulses/edge_detector.luc"
-                }
-            },
-            {
-                "file": {
                     "type": "DiskFile",
                     "path": "source/fulladder.luc"
                 }
@@ -45,6 +33,24 @@
                 "file": {
                     "type": "DiskFile",
                     "path": "source/var_adder.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/button_conditioner.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/btn_press.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "Component",
+                    "path": "Pulses/edge_detector.luc"
                 }
             }
         ],
