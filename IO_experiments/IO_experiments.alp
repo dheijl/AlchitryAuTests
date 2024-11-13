@@ -40,6 +40,12 @@
                     "type": "Component",
                     "path": "Conditioning/button_conditioner.luc"
                 }
+            },
+            {
+                "file": {
+                    "type": "Component",
+                    "path": "Miscellaneous/bin_to_dec.luc"
+                }
             }
         ],
         "constraintFiles": [

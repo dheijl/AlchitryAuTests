@@ -19,14 +19,9 @@ module alchitry_top (
     const RIGHT = 4
     const NBUTTONS = 5
     
-    sig add
-    sig sub
-    sig nxt
-    sig prv
-    sig go
-    sig dips[3][8]
-    
     sig rst                 
+    
+    bin_to_dec btd(#DIGITS(4), #LEADING_ZEROS(1))
     
     .clk(clk) {
         // The reset coditioner is used to synchronize the reset signal to the FPGA
@@ -45,28 +40,25 @@ module alchitry_top (
         reset_cond.in = ~rst_n  // input raw inverted reset signal
         rst = reset_cond.out    // conditioned reset
         
-        // initial state
+       // initial state
         led = 8h00
         io_led = 3x{{8h00}}       
         io_select = 4b1
         io_segment = 8b1
-        dips = io_dip
+        // read dips switches
+        sig dips[3][8] = io_dip
         
         // get debounced button state
         btn_chk.btn_in[NBUTTONS-1:0] = io_button
-        add = btn_chk.btn_down[UP]     
-        sub = btn_chk.btn_down[DOWN]
-        nxt = btn_chk.btn_down[LEFT]
-        prv = btn_chk.btn_down[RIGHT]
-        go = btn_chk.btn_down[CENTER]
+        sig  add = btn_chk.btn_down[UP]     
+        sig sub = btn_chk.btn_down[DOWN]
+        sig nxt = btn_chk.btn_down[LEFT]
+        sig prv = btn_chk.btn_down[RIGHT]
+        sig go = btn_chk.btn_down[CENTER]
         
         // show button presses
-        led[0] = add
-        led[1] = sub
-        led[2] = nxt
-        led[3] = prv
-        led[4] = go
- 
+        led[4:0] = c{add, sub, nxt, prv, go}
+        
         // update the counter
         if (add) {
             adder.d = adder.q + 1
@@ -77,11 +69,15 @@ module alchitry_top (
         // and show on io_leds
         io_led = $build(adder.q, 3)
         
+        // convert to decimal
+        btd.value = adder.q[13:0]
+        sig digits[4][4] = btd.digits
+        // todo: show on 7 segment display
         
         usb_tx = usb_rx        // loop serial port
         io_segment = 8h_f_f
         io_select = 4h_f
-
+        
         
         /*
         adder.x = io_dip[0]        // first 8-bit digit
@@ -92,6 +88,6 @@ module alchitry_top (
         
         
         io_led[2][7] = io_button[UP]
-        */
+        */        
     }
 }
