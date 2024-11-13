@@ -38,12 +38,6 @@
             {
                 "file": {
                     "type": "DiskFile",
-                    "path": "source/button_conditioner.luc"
-                }
-            },
-            {
-                "file": {
-                    "type": "DiskFile",
                     "path": "source/btn_press.luc"
                 }
             },
@@ -51,6 +45,12 @@
                 "file": {
                     "type": "Component",
                     "path": "Pulses/edge_detector.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "Component",
+                    "path": "Conditioning/button_conditioner.luc"
                 }
             }
         ],
