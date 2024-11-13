@@ -1,4 +1,12 @@
-// reference: https://natalieagus.github.io/50002/fpga/fpga_1
+// WIP: a simple adder for 4 digits (limited to a sum of 8191) 
+//
+// up/down button increment/decrement the currently selected digit
+// left/right button select the next/previous digit
+// the currently selected digit is shown on leds[3:0]
+// the currently selected digit value is shown 
+//     - on io_leds[0][3:0] 
+//     - on the seven segment display
+// TODO: x, y, sum
 module alchitry_top (
     input clk,              // 100MHz clock
     input rst_n,            // reset button (active low)
@@ -21,7 +29,7 @@ module alchitry_top (
     
     sig rst                 
     
-    bin_to_dec btd(#DIGITS(4), #LEADING_ZEROS(1))
+    //bin_to_dec btd(#DIGITS(4), #LEADING_ZEROS(1))
     
     .clk(clk) {
         // The reset coditioner is used to synchronize the reset signal to the FPGA
@@ -29,9 +37,12 @@ module alchitry_top (
         reset_conditioner reset_cond
         
         btn_press btn_chk[NBUTTONS]
-        
+       
         .rst(rst) {
-            dff adder[24]
+            //dff adder[24]
+            dff digadder[4][4]
+            dff digindex[2]
+            multi_seven_seg seg (#DIV($is_sim() ? 1 : 16), #DIGITS(4))
         }
     }
     
@@ -40,7 +51,7 @@ module alchitry_top (
         reset_cond.in = ~rst_n  // input raw inverted reset signal
         rst = reset_cond.out    // conditioned reset
         
-       // initial state
+        // initial state
         led = 8h00
         io_led = 3x{{8h00}}       
         io_select = 4b1
@@ -48,35 +59,47 @@ module alchitry_top (
         // read dips switches
         sig dips[3][8] = io_dip
         
+        // show currently active digit on AU leds [0-3]
+        led[digindex.q] = 1
+        // show current digit value on right io_leds bank
+        io_led[0][3:0] = digadder.q[digindex.q]
+        // show current digit values on display
+        seg.values = digadder.q
+        io_segment = ~seg.seg // connect segments to the driver
+        io_select = ~seg.sel  // connect digit select to the driver
+        
         // get debounced button state
         btn_chk.btn_in[NBUTTONS-1:0] = io_button
-        sig  add = btn_chk.btn_down[UP]     
+        sig add = btn_chk.btn_down[UP]     
         sig sub = btn_chk.btn_down[DOWN]
         sig nxt = btn_chk.btn_down[LEFT]
         sig prv = btn_chk.btn_down[RIGHT]
         sig go = btn_chk.btn_down[CENTER]
         
         // show button presses
-        led[4:0] = c{add, sub, nxt, prv, go}
+        //led[4:0] = c{add, sub, nxt, prv, go}
         
-        // update the counter
+        // update the current digit
         if (add) {
-            adder.d = adder.q + 1
+            digadder.d[digindex.q] = digadder.q[digindex.q] + 1
         }
         if (sub) {
-            adder.d = adder.q - 1
+            digadder.d[digindex.q] = digadder.q[digindex.q] - 1
         }
-        // and show on io_leds
-        io_led = $build(adder.q, 3)
+        // update the current digit index
+        if (nxt) {
+            digindex.d = digindex.q + 1
+        }
+        if (prv) {
+            digindex.d = digindex.q - 1
+        }
         
         // convert to decimal
-        btd.value = adder.q[13:0]
-        sig digits[4][4] = btd.digits
+        //btd.value = adder.q[13:0]
+        //sig digits[4][4] = btd.digits
         // todo: show on 7 segment display
         
         usb_tx = usb_rx        // loop serial port
-        io_segment = 8h_f_f
-        io_select = 4h_f
         
         
         /*
