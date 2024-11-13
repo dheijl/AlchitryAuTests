@@ -27,7 +27,11 @@ module alchitry_top (
     const RIGHT = 4
     const NBUTTONS = 5
     
-    sig rst                 
+    sig rst              
+    enum State { X, Y, SUM }
+    //sig x[4][4]
+    //sig y[4][4]
+    //sig sum[4][4]
     
     //bin_to_dec btd(#DIGITS(4), #LEADING_ZEROS(1))
     
@@ -37,9 +41,10 @@ module alchitry_top (
         reset_conditioner reset_cond
         
         btn_press btn_chk[NBUTTONS]
-       
+        
         .rst(rst) {
             //dff adder[24]
+            dff state[$width(State)](#INIT(State.X))
             dff digadder[4][4]
             dff digindex[2]
             multi_seven_seg seg (#DIV($is_sim() ? 1 : 16), #DIGITS(4))
@@ -51,6 +56,10 @@ module alchitry_top (
         reset_cond.in = ~rst_n  // input raw inverted reset signal
         rst = reset_cond.out    // conditioned reset
         
+        sig x[4][4] = 4x{{4h0}}
+        sig y[4][4] = 4x{{4h0}}
+        sig sum[4][4] = 4x{{4h0}}
+        
         // initial state
         led = 8h00
         io_led = 3x{{8h00}}       
@@ -58,6 +67,9 @@ module alchitry_top (
         io_segment = 8b1
         // read dips switches
         sig dips[3][8] = io_dip
+        
+        // initialize state
+        state.d = state.q
         
         // show currently active digit on AU leds [0-3]
         led[digindex.q] = 1
@@ -81,17 +93,42 @@ module alchitry_top (
         
         // update the current digit
         if (add) {
-            digadder.d[digindex.q] = digadder.q[digindex.q] + 1
+            if (digadder.q[digindex.q] == 9) {
+                 digadder.d[digindex.q] = 0
+            } else {
+                digadder.d[digindex.q] = digadder.q[digindex.q] + 1
+            }
         }
         if (sub) {
-            digadder.d[digindex.q] = digadder.q[digindex.q] - 1
+            if (digadder.q[digindex.q] == 0) {
+                 digadder.d[digindex.q] = 9
+            } else {
+                digadder.d[digindex.q] = digadder.q[digindex.q] - 1
+            }
         }
+        
         // update the current digit index
         if (nxt) {
             digindex.d = digindex.q + 1
         }
         if (prv) {
             digindex.d = digindex.q - 1
+        }
+        if (go) {
+           digindex.d = 0 
+           case (state.q) {
+                State.X:
+                    x = digadder.q
+                    state.d = state.q + 1
+                State.Y:
+                    y = digadder.q
+                    state.d = state.q + 1
+                State.SUM:
+                    // ..
+                    //sum = add x and y
+                    state.d = State.X
+            }
+            digadder.d = 4x{{4h0}}
         }
         
         // convert to decimal
