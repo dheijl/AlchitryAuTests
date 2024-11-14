@@ -138,7 +138,7 @@ module alchitry_top (
                     sig y_i[15] = y.q[0] + y.q[1] * 10 + y.q[2] * 100 + y.q[3] * 1000  
                     sum_i.d = x_i + y_i
                     btd.bin = sum_i.q
-                    sum_bcd.d = btd.bcd[15:0] 
+                    sum_bcd.d = 20h12345 // btd.bcd[15:0] 
                     sum.d[0] = sum_bcd.q[3:0]
                     sum.d[1] = sum_bcd.q[7:4]
                     sum.d[2] = sum_bcd.q[11:8]
