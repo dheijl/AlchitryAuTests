@@ -43,12 +43,6 @@
             },
             {
                 "file": {
-                    "type": "Component",
-                    "path": "Miscellaneous/bin_to_dec.luc"
-                }
-            },
-            {
-                "file": {
                     "type": "DiskFile",
                     "path": "source/multi_seven_seg.luc"
                 }
@@ -69,6 +63,12 @@
                 "file": {
                     "type": "Component",
                     "path": "Miscellaneous/decoder.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/bin2bcd.v"
                 }
             }
         ],

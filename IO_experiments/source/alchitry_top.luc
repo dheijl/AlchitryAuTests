@@ -1,7 +1,8 @@
-// WIP: a simple adder for 4 digits (limited to a sum of 8191) 
-//
+// WIP: a simple adder for 2 4-digits inputs with ovrerflow indication
 // up/down button increment/decrement the currently selected digit
 // left/right button select the next/previous digit
+// center button controls state:
+// enter x => enter y => show sum => enter x etc...
 // the currently selected digit is shown on leds[3:0]
 // the currently selected digit value is shown 
 //     - on io_leds[0][3:0] 
@@ -28,26 +29,27 @@ module alchitry_top (
     const NBUTTONS = 5
     
     sig rst              
-    enum State { X, Y, SUM }
-    //sig x[4][4]
-    //sig y[4][4]
-    //sig sum[4][4]
+    enum State {X, Y, SUM} // X: input x, Y: input y, SUM: compute and show sum
     
-    //bin_to_dec btd(#DIGITS(4), #LEADING_ZEROS(1))
+    //bin_to_dec btd(#DIGITS(5), #LEADING_ZEROS(1b1))
+    bin2bcd btd(#W(16))
     
     .clk(clk) {
         // The reset coditioner is used to synchronize the reset signal to the FPGA
         // clock. This ensures the entire FPGA comes out of reset at the same time.
         reset_conditioner reset_cond
-        
-        btn_press btn_chk[NBUTTONS]
+        btn_press btn_chk[NBUTTONS]  // debounce button press
         
         .rst(rst) {
-            //dff adder[24]
-            dff state[$width(State)](#INIT(State.X))
-            dff digadder[4][4]
-            dff digindex[2]
-            multi_seven_seg seg (#DIV($is_sim() ? 1 : 16), #DIGITS(4))
+            dff state[$width(State)](#INIT(State.X)) // state fsm
+            dff digit_adder[4][4] // 4 adders, one for each decimal digit
+            dff digit_index[2] // the current decimal digit in X or Y
+            dff x[4][4] // X 4 bcd digits
+            dff y[4][4] // Y 4 bcd digits
+            dff sum_i[16] // the binary sum 
+            dff sum_bcd[20] // sum bcd as a binary register
+            dff sum[5][4]   // sum bcd in 5 hex digits 
+            multi_seven_seg seg (#DIV($is_sim() ? 1 : 16), #DIGITS(4)) // 4 digit 7-segment display
         }
     }
     
@@ -55,99 +57,101 @@ module alchitry_top (
     always {
         reset_cond.in = ~rst_n  // input raw inverted reset signal
         rst = reset_cond.out    // conditioned reset
-        
-        sig x[4][4] = 4x{{4h0}}
-        sig y[4][4] = 4x{{4h0}}
-        sig sum[4][4] = 4x{{4h0}}
-        
-        // initial state
+              
+        // initial state of indicators
         led = 8h00
         io_led = 3x{{8h00}}       
         io_select = 4b1
         io_segment = 8b1
-        // read dips switches
+        // read dips switches, unused for now
         sig dips[3][8] = io_dip
         
-        // initialize state
+        // initial adder state
         state.d = state.q
+        // initial btd state
+        btd.bin = 0
         
         // show currently active digit on AU leds [0-3]
-        led[digindex.q] = 1
+        led[digit_index.q] = 1
         // show current digit value on right io_leds bank
-        io_led[0][3:0] = digadder.q[digindex.q]
-        // show current digit values on display
-        seg.values = digadder.q
+        io_led[0][3:0] = digit_adder.q[digit_index.q]
+        // show current state on left io_leds bank
+        io_led[2][0] = state.q == State.X 
+        io_led[2][1] = state.q == State.Y
+        io_led[2][2] = state.q == State.SUM
+        
+        // show current digit values or sum on display
+        case (state.q) {
+             State.X:
+                seg.values = digit_adder.q
+             State.Y:
+                seg.values = digit_adder.q
+            default:
+                seg.values = sum.q[3:0]
+        }
         io_segment = ~seg.seg // connect segments to the driver
         io_select = ~seg.sel  // connect digit select to the driver
         
-        // get debounced button state
+        // get debounced buttons pressed state
         btn_chk.btn_in[NBUTTONS-1:0] = io_button
         sig add = btn_chk.btn_down[UP]     
         sig sub = btn_chk.btn_down[DOWN]
         sig nxt = btn_chk.btn_down[LEFT]
         sig prv = btn_chk.btn_down[RIGHT]
         sig go = btn_chk.btn_down[CENTER]
-        
-        // show button presses
-        //led[4:0] = c{add, sub, nxt, prv, go}
-        
-        // update the current digit
+                
+        // inc/dec the currently displayed digit
         if (add) {
-            if (digadder.q[digindex.q] == 9) {
-                 digadder.d[digindex.q] = 0
+            if (digit_adder.q[digit_index.q] == 9) {
+                digit_adder.d[digit_index.q] = 0
             } else {
-                digadder.d[digindex.q] = digadder.q[digindex.q] + 1
+                digit_adder.d[digit_index.q] = digit_adder.q[digit_index.q] + 1
             }
         }
         if (sub) {
-            if (digadder.q[digindex.q] == 0) {
-                 digadder.d[digindex.q] = 9
+            if (digit_adder.q[digit_index.q] == 0) {
+                digit_adder.d[digit_index.q] = 9
             } else {
-                digadder.d[digindex.q] = digadder.q[digindex.q] - 1
+                digit_adder.d[digit_index.q] = digit_adder.q[digit_index.q] - 1
             }
-        }
-        
-        // update the current digit index
+        }   
+        // update the currently displayed digit index
         if (nxt) {
-            digindex.d = digindex.q + 1
+            digit_index.d = digit_index.q + 1
         }
         if (prv) {
-            digindex.d = digindex.q - 1
+            digit_index.d = digit_index.q - 1
         }
+        // FSM: center button selects next state: input x => input y => sum => input x => etc...
         if (go) {
-           digindex.d = 0 
-           case (state.q) {
+            digit_index.d = 0 // reset to 1st digit
+            case (state.q) {
                 State.X:
-                    x = digadder.q
-                    state.d = state.q + 1
+                    x.d = digit_adder.q // remember x value
+                    digit_adder.d = 4x{{4h0}}
+                    state.d = State.Y // go to next state
                 State.Y:
-                    y = digadder.q
-                    state.d = state.q + 1
+                    y.d = digit_adder.q // remeber y value
+                    digit_adder.d = 4x{{4h0}}
+                    // compute sum
+                    sig x_i[15] = x.q[0] + x.q[1] * 10 + x.q[2] * 100 + x.q[3] * 1000 
+                    sig y_i[15] = y.q[0] + y.q[1] * 10 + y.q[2] * 100 + y.q[3] * 1000  
+                    sum_i.d = x_i + y_i
+                    btd.bin = sum_i.q
+                    sum_bcd.d = btd.bcd[15:0] 
+                    sum.d[0] = sum_bcd.q[3:0]
+                    sum.d[1] = sum_bcd.q[7:4]
+                    sum.d[2] = sum_bcd.q[11:8]
+                    sum.d[3] = sum_bcd.q[15:12]
+                    sum.d[4] = sum_bcd.q[19:16]
+                    state.d = State.SUM // go to next state
                 State.SUM:
-                    // ..
-                    //sum = add x and y
+                    // setup next iteration 
                     state.d = State.X
-            }
-            digadder.d = 4x{{4h0}}
+                    digit_adder.d = 4x{{4h0}}
+             }
         }
         
-        // convert to decimal
-        //btd.value = adder.q[13:0]
-        //sig digits[4][4] = btd.digits
-        // todo: show on 7 segment display
-        
-        usb_tx = usb_rx        // loop serial port
-        
-        
-        /*
-        adder.x = io_dip[0]        // first 8-bit digit
-        adder.y = io_dip[1]        // second 8 bit digit
-        adder.cin = io_dip[2][0]   // carry in 
-        io_led[1] = adder.sum      // sum
-        io_led[2][0] = adder.cout  // carry out
-        
-        
-        io_led[2][7] = io_button[UP]
-        */        
+        usb_tx = usb_rx        // loop serial port      
     }
 }
