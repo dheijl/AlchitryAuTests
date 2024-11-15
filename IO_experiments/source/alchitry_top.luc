@@ -2,7 +2,7 @@
 // up/down button increment/decrement the currently selected digit
 // left/right button select the next/previous digit
 // center button controls state:
-// enter x => enter y => show sum => enter x etc...
+// enter a => enter b => show sum => enter a etc...
 // the currently selected digit is shown on leds[3:0]
 // the currently selected digit value is shown 
 //     - on io_leds[0][3:0] 
@@ -33,7 +33,7 @@ module alchitry_top (
     const NBUTTONS = 5
     
     // the FSM
-    enum State {X, Y, SUM} // X: input x, Y: input y, SUM: compute and show sum
+    enum State {A, B, SUM} // A: input a, B: input b, SUM: compute and show sum
     
     // the 4-digit BCD adder
     bcd_add_n bcda(#DIGITS(4))
@@ -47,7 +47,7 @@ module alchitry_top (
         btn_press btn_chk[NBUTTONS]  
         
         .rst(rst) {
-            dff state[$width(State)](#INIT(State.X)) // state fsm
+            dff state[$width(State)](#INIT(State.A)) // state fsm
             dff digit_adder[4][4] // 4 bcd adders, one for each decimal digit
             dff a[4][4] // 4 bcd digits, a input for adder
             dff b[4][4] // 4 bcd digits, b input for adder
@@ -78,8 +78,8 @@ module alchitry_top (
         // show current digit value on right io_leds bank
         io_led[0][3:0] = digit_adder.q[digit_index.q]
         // show current state on left io_led bank [2:0]
-        io_led[2][0] = state.q == State.X 
-        io_led[2][1] = state.q == State.Y
+        io_led[2][0] = state.q == State.A 
+        io_led[2][1] = state.q == State.B
         io_led[2][2] = state.q == State.SUM
         
         // clear bcd adder
@@ -97,9 +97,9 @@ module alchitry_top (
         }
         // show the current a or b or sum digit values on display
         case (state.q) {
-            State.X:
+            State.A:
                 seg.values = digit_adder.q
-            State.Y:
+            State.B:
                 seg.values = digit_adder.q
             default:
                 seg.values = sum.q[3:0]
@@ -135,16 +135,16 @@ module alchitry_top (
         } else if (enter) { // advance state machine
             digit_index.d = 0 // reset to 1st digit
             case (state.q) {
-                State.X:
+                State.A:
                     a.d = digit_adder.q // remember x value
                     digit_adder.d = 4x{{4h0}}
-                    state.d = State.Y // go to next state
-                State.Y:
+                    state.d = State.B // go to next state
+                State.B:
                     b.d = digit_adder.q // remember y value
                     digit_adder.d = 4x{{4h0}}
                     state.d = State.SUM // go to next state
                 State.SUM:
-                    state.d = State.X // go to next state
+                    state.d = State.A // go to next state
             }
         }
         
