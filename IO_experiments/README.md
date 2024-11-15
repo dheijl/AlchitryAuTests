@@ -18,6 +18,9 @@ The sum is shown on the 7 segment display until the center button is pressed aga
 
 An overflow condition is shown on the leftmost io led [2][7:7]
 
+The code is written in Alchitry Labs Lucid, a more ergonomic version of Verilog.
+The Alchitry IDE converts this to Verilog and compiles it with Vivado.
+
 A picture of the result of adding 9999 + 9999 :
 
 ![bcd adder](https://github.com/user-attachments/assets/99d17364-7336-4259-8767-2ef69e75b5ef)
