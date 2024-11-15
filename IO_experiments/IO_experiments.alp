@@ -68,7 +68,13 @@
             {
                 "file": {
                     "type": "DiskFile",
-                    "path": "source/bin2bcd.v"
+                    "path": "source/bcd_add.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/bcd_add_n.luc"
                 }
             }
         ],

@@ -30,9 +30,8 @@ module alchitry_top (
     
     sig rst              
     enum State {X, Y, SUM} // X: input x, Y: input y, SUM: compute and show sum
+    bcd_add_n bcda(#DIGITS(4))
     
-    //bin_to_dec btd(#DIGITS(5), #LEADING_ZEROS(1b1))
-    bin2bcd btd(#W(16))
     
     .clk(clk) {
         // The reset coditioner is used to synchronize the reset signal to the FPGA
@@ -46,8 +45,6 @@ module alchitry_top (
             dff digit_index[2] // the current decimal digit in X or Y
             dff x[4][4] // X 4 bcd digits
             dff y[4][4] // Y 4 bcd digits
-            dff sum_i[16] // the binary sum 
-            dff sum_bcd[20] // sum bcd as a binary register
             dff sum[5][4]   // sum bcd in 5 hex digits 
             multi_seven_seg seg (#DIV($is_sim() ? 1 : 16), #DIGITS(4)) // 4 digit 7-segment display
         }
@@ -68,8 +65,6 @@ module alchitry_top (
         
         // initial adder state
         state.d = state.q
-        // initial btd state
-        btd.bin = 0
         
         // show currently active digit on AU leds [0-3]
         led[digit_index.q] = 1
@@ -79,13 +74,27 @@ module alchitry_top (
         io_led[2][0] = state.q == State.X 
         io_led[2][1] = state.q == State.Y
         io_led[2][2] = state.q == State.SUM
+    
+        bcda.a = 4x{{4h0}}
+        bcda.b = 4x{{4h0}}
+        bcda.carry_in = 1b0        
         
+        // if collected x and y to do the addition: SUM
+        if (state.q == State.SUM) {
+            bcda.a = x.q
+            bcda.b = y.q
+            bcda.carry_in = 0
+            sum.d[3:0] = bcda.sum
+            sum.d[4][0:0] = bcda.carry
+        }
         // show current digit values or sum on display
         case (state.q) {
              State.X:
                 seg.values = digit_adder.q
              State.Y:
                 seg.values = digit_adder.q
+            State.SUM:
+                seg.values = sum.q[3:0]
             default:
                 seg.values = sum.q[3:0]
         }
@@ -125,30 +134,18 @@ module alchitry_top (
         // FSM: center button selects next state: input x => input y => sum => input x => etc...
         if (go) {
             digit_index.d = 0 // reset to 1st digit
+            if (state.q ==State.SUM) {
+                state.d = State.X
+            }
             case (state.q) {
                 State.X:
                     x.d = digit_adder.q // remember x value
                     digit_adder.d = 4x{{4h0}}
                     state.d = State.Y // go to next state
                 State.Y:
-                    y.d = digit_adder.q // remeber y value
+                    y.d = digit_adder.q // remember y value
                     digit_adder.d = 4x{{4h0}}
-                    // compute sum
-                    sig x_i[15] = x.q[0] + x.q[1] * 10 + x.q[2] * 100 + x.q[3] * 1000 
-                    sig y_i[15] = y.q[0] + y.q[1] * 10 + y.q[2] * 100 + y.q[3] * 1000  
-                    sum_i.d = x_i + y_i
-                    btd.bin = sum_i.q
-                    sum_bcd.d = 20h12345 // btd.bcd[15:0] 
-                    sum.d[0] = sum_bcd.q[3:0]
-                    sum.d[1] = sum_bcd.q[7:4]
-                    sum.d[2] = sum_bcd.q[11:8]
-                    sum.d[3] = sum_bcd.q[15:12]
-                    sum.d[4] = sum_bcd.q[19:16]
-                    state.d = State.SUM // go to next state
-                State.SUM:
-                    // setup next iteration 
-                    state.d = State.X
-                    digit_adder.d = 4x{{4h0}}
+                    state.d = State.SUM
              }
         }
         

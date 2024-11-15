@@ -1,0 +1,23 @@
+module bcd_add (
+    input a[4],
+    input b[4],
+    input carry_in[1],
+    output sum[4],
+    output carry[1]
+){
+    sig sum_temp[5] 
+    
+    always {
+        sum_temp = a + b + carry_in //add all the inputs
+        if (sum_temp > 9) {
+            sum_temp = sum_temp + 6  //add 6, if result is more than 9.
+            carry = 1  //set the carry output
+            sum = sum_temp[3:0]    
+        } else {
+            carry = 0
+            sum = sum_temp[3:0]
+        }   
+    }
+}
+
+
