@@ -49,10 +49,10 @@ module alchitry_top (
         .rst(rst) {
             dff state[$width(State)](#INIT(State.X)) // state fsm
             dff digit_adder[4][4] // 4 bcd adders, one for each decimal digit
-            dff digit_index[2] // the current decimal digit position in X or Y
             dff a[4][4] // 4 bcd digits, a input for adder
             dff b[4][4] // 4 bcd digits, b input for adder
-            dff sum[5][4] // adder sum 5 bcd digits 
+            dff digit_index[2] // the current decimal digit position in a or b
+            dff sum[5][4] // the adder sum, 5 bcd digits 
             multi_seven_seg seg (#DIV($is_sim() ? 1 : 16), #DIGITS(4)) // 4 digit 7-segment display
         }
     }
