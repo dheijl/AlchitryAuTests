@@ -6,15 +6,17 @@ The 5 buttons on the IO board allow you to enter the two numbers a and b and com
 - use the left/right button to select the next/previous digit in a or b
 - use the center button to advance state: enter a => enter b => show sum => enter a etc...
 
-The currently selected digit is shown on leds[3:0]
+The currently selected digit is shown on leds[3:0] an the AU board
 
-The currently selected digit value is shown 
-     - on io_leds[0][3:0] 
-     - on the seven segment display
+The current state (a, b, sum) is shown on io leds [2][3:0]
 
-The sum is shown on the 7 segment display until the center button is pressed again
+The currently selected digit value of or b is shown on the io board: 
+  - on io_leds[0][3:0] 
+  - on the seven segment display
 
-Overflow is shown on the leftmost io led
+The sum is shown on the 7 segment display until the center button is pressed again,ready for the next a value
+
+An overflow condition is shown on the leftmost io led [2][7:7]
 
 A picture of the result of adding 9999 + 9999 :
 
