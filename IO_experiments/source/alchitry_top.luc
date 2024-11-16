@@ -1,14 +1,13 @@
-// WIP: a simple adder for 2 4-digits inputs with ovrerflow indication
-// up/down button increment/decrement the currently selected digit
-// left/right button select the next/previous digit
-// center button controls state:
-// enter a => enter b => show sum => enter a etc...
-// the currently selected digit is shown on leds[3:0]
+// A simple adder for two 4-digits inputs with overflow indication
+// up/down button => increment/decrement the currently selected digit
+// left/right button => select the next/previous digit to enter
+// center button => next state:
+//     enter a value => enter b value => show sum => restart
+// the currently selected digit is shown on AU leds[3:0]
 // the currently selected digit value is shown 
 //     - on io_leds[0][3:0] 
-//     - on the seven segment display
-// the sum is shown on the 7 segment display 
-// until the center button is pressed again
+//     - on the io seven segment display
+// the sum is shown on the 7 segment display until the center button is pressed again
 
 module alchitry_top (
     input clk,              // 100MHz clock
@@ -37,7 +36,9 @@ module alchitry_top (
     
     // the 4-digit BCD adder
     bcd_add_n bcda(#DIGITS(4))
-    
+    // the sum
+    sig sum[5][4] // the adder sum, 5 bcd digits 
+
     
     .clk(clk) {
         // The reset coditioner is used to synchronize the reset signal to the FPGA
@@ -52,7 +53,6 @@ module alchitry_top (
             dff a[4][4] // 4 bcd digits, a input for adder
             dff b[4][4] // 4 bcd digits, b input for adder
             dff digit_index[2] // the current decimal digit position in a or b
-            dff sum[5][4] // the adder sum, 5 bcd digits 
             multi_seven_seg seg (#DIV($is_sim() ? 1 : 16), #DIGITS(4)) // 4 digit 7-segment display
         }
     }
@@ -82,33 +82,35 @@ module alchitry_top (
         io_led[2][1] = state.q == State.B
         io_led[2][2] = state.q == State.SUM
         
-        // clear bcd adder
+        // clear the bcd adder
         bcda.a = 4x{{4h0}}
         bcda.b = 4x{{4h0}}
-        bcda.carry_in = 1b0        
+        bcda.carry_in = 1b0  
+        // clear the sum
+        sum = 5x{{4h0}}
         
-        // if aand b have been entered: do the addition and show the sum
-        if (state.q == State.SUM) {
-            bcda.a = a.q
-            bcda.b = b.q
-            bcda.carry_in = 0
-            sum.d[3:0] = bcda.sum
-            sum.d[4][0:0] = bcda.carry
-        }
         // show the current a or b or sum digit values on display
         case (state.q) {
             State.A:
                 seg.values = digit_adder.q
             State.B:
                 seg.values = digit_adder.q
-            default:
-                seg.values = sum.q[3:0]
+            State.SUM:
+                bcda.a = a.q
+                bcda.b = b.q
+                bcda.carry_in = 0
+                sum[3:0] = bcda.sum
+                sum[4][0:0] = bcda.carry
+                seg.values = sum[3:0]
                 io_led[2][7:7] = bcda.carry // overflow indicator
+            default:
+                // should never happen
+                seg.values = 4x{{4bxxx}}
         }
         io_segment = ~seg.seg // connect segments to the driver
         io_select = ~seg.sel  // connect digit select to the driver
         
-        // get debounced buttons pressed state
+        // get the debounced buttons pressed state
         btn_chk.btn_in[NBUTTONS-1:0] = io_button
         sig add = btn_chk.btn_down[UP]     
         sig sub = btn_chk.btn_down[DOWN]
