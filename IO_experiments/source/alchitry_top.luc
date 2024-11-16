@@ -133,15 +133,12 @@ module alchitry_top (
         } else if (prv) { // previous digit position
             digit_index.d = digit_index.q - 1
         } else if (enter) { // advance state machine
-            digit_index.d = 0 // reset to 1st digit
             case (state.q) {
                 State.A:
                     a.d = digit_adder.q // remember x value
-                    digit_adder.d = 4x{{4h0}}
                     state.d = State.B // set next state
                 State.B:
                     b.d = digit_adder.q // remember y value
-                    digit_adder.d = 4x{{4h0}}
                     state.d = State.SUM // set next state (activates bcd adder)
                 State.SUM:
                     state.d = State.A // set next state
@@ -149,6 +146,9 @@ module alchitry_top (
                     // should not happen
                     state.d = State.A
             }
+            // clean-up for next state
+            digit_adder.d = 4x{{4h0}} // clear a or b
+            digit_index.d = 0 // reset to enter 1st digit
         }
         
         usb_tx = usb_rx        // loop serial port      
