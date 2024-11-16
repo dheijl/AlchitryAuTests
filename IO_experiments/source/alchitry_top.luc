@@ -147,6 +147,9 @@ module alchitry_top (
                     state.d = State.SUM // go to next state
                 State.SUM:
                     state.d = State.A // go to next state
+                default:
+                    // should not happen
+                    state.d = State.A
             }
         }
         
