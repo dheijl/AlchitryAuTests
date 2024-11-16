@@ -62,25 +62,14 @@ module alchitry_top (
         reset_cond.in = ~rst_n  // input raw inverted reset signal
         rst = reset_cond.out    // conditioned reset
         
+        // read dips switches, unused for now
+        sig dips[3][8] = io_dip
+
         // initial state of indicators
         led = 8h00
         io_led = 3x{{8h00}}       
         io_select = 4b1
         io_segment = 8b1
-        // read dips switches, unused for now
-        sig dips[3][8] = io_dip
-        
-        // initial adder state
-        state.d = state.q
-        
-        // show currently active digit on AU leds [0-3]
-        led[digit_index.q] = 1
-        // show current digit value on right io_leds bank
-        io_led[0][3:0] = digit_adder.q[digit_index.q]
-        // show current state on left io_led bank [2:0]
-        io_led[2][0] = state.q == State.A 
-        io_led[2][1] = state.q == State.B
-        io_led[2][2] = state.q == State.SUM
         
         // clear the bcd adder
         bcda.a = 4x{{4h0}}
@@ -88,8 +77,17 @@ module alchitry_top (
         bcda.carry_in = 1b0  
         // clear the sum
         sum = 5x{{4h0}}
-        
-        // show the current a or b or sum digit values on display
+
+        // show currently active digit on AU leds [0-3]
+        led[digit_index.q] = 1
+        // show current digit value on right io_leds bank
+        io_led[0][3:0] = digit_adder.q[digit_index.q]
+        // show current FSM state on left io_led bank [2:0]
+        io_led[2][0] = state.q == State.A 
+        io_led[2][1] = state.q == State.B
+        io_led[2][2] = state.q == State.SUM
+           
+        // show the current a or b or sum digits on the display
         case (state.q) {
             State.A:
                 seg.values = digit_adder.q
@@ -102,7 +100,7 @@ module alchitry_top (
                 sum[3:0] = bcda.sum
                 sum[4][0:0] = bcda.carry
                 seg.values = sum[3:0]
-                io_led[2][7:7] = bcda.carry // overflow indicator
+                io_led[2][7:7] = bcda.carry // set overflow indicator
             default:
                 // should never happen
                 seg.values = 4x{{4bxxx}}
@@ -140,13 +138,13 @@ module alchitry_top (
                 State.A:
                     a.d = digit_adder.q // remember x value
                     digit_adder.d = 4x{{4h0}}
-                    state.d = State.B // go to next state
+                    state.d = State.B // set next state
                 State.B:
                     b.d = digit_adder.q // remember y value
                     digit_adder.d = 4x{{4h0}}
-                    state.d = State.SUM // go to next state
+                    state.d = State.SUM // set next state (activates bcd adder)
                 State.SUM:
-                    state.d = State.A // go to next state
+                    state.d = State.A // set next state
                 default:
                     // should not happen
                     state.d = State.A
