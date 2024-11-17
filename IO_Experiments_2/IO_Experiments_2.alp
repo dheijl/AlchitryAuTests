@@ -28,6 +28,12 @@
                     "type": "DiskFile",
                     "path": "source/var_adder.luc"
                 }
+            },
+            {
+                "file": {
+                    "type": "Component",
+                    "path": "Miscellaneous/bin_to_dec.luc"
+                }
             }
         ],
         "constraintFiles": [

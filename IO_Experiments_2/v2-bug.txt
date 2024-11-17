@@ -1,0 +1,7 @@
+INFO: [Synth 8-6157] synthesizing module 'bin_to_dec' [/home/danny/alchitry/IO_Experiments_2/build/vivado/IO_Experiments_2.srcs/sources_1/imports/source/bin_to_dec.sv:7]	
+Parameter DIGITS bound to: 3'b100 	
+Parameter LEADING_ZEROS bound to: 1'b0 
+ERROR: [Synth 8-11587] invalid assignment pattern [/home/danny/alchitry/IO_Experiments_2/build/vivado/IO_Experiments_2.srcs/sources_1/imports/source/bin_to_dec.sv:27]
+ERROR: [Synth 8-6156] failed synthesizing module 'bin_to_dec' [/home/danny/alchitry/IO_Experiments_2/build/vivado/IO_Experiments_2.srcs/sources_1/imports/source/bin_to_dec.sv:7]
+ERROR: [Synth 8-6156] failed synthesizing module 'alchitry_top' [/home/danny/alchitry/IO_Experiments_2/build/vivado/IO_Experiments_2.srcs/sources_1/imports/source/alchitry_top.sv:7]
+
