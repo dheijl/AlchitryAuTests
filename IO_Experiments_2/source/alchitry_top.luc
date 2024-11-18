@@ -13,12 +13,15 @@ module alchitry_top (
     input io_dip[3][8]      // DIP switches on IO Shield
 ) {
     
-     //sig rst                 // reset signal
+     sig rst                 // reset signal
     
     .clk(clk) {
         // The reset conditioner is used to synchronize the reset signal to the FPGA
         // clock. This ensures the entire FPGA comes out of reset at the same time.
-        //reset_conditioner reset_cond
+        reset_conditioner reset_cond
+        .rst(rst) {
+                multi_seven_seg seg (#DIV($is_sim() ? 1 : 16), #DIGITS(4)) // 4 digit 7-segment display
+        }
     }
     
      var_adder va(#BITS(24))
@@ -26,8 +29,8 @@ module alchitry_top (
    
     
     always {
-        //reset_cond.in = ~rst_n  // input raw inverted reset signal
-        //rst = reset_cond.out    // conditioned reset
+        reset_cond.in = ~rst_n  // input raw inverted reset signal
+        rst = reset_cond.out    // conditioned reset
         
      
         
@@ -45,6 +48,10 @@ module alchitry_top (
         
         btd.value = va.sum[13:0]
         sig result[4][4] = btd.digits
+        seg.values = result
+        io_segment = ~seg.seg // connect segments to the driver
+        io_select = ~seg.sel  // connect digit select to the driver
+        
         
         usb_tx = usb_rx         // loop serial port
 
