@@ -25,7 +25,7 @@ module alchitry_top (
     }
     
     var_adder va(#BITS(24))
-    bin_to_dec btd(#DIGITS(4))
+    bin_to_dec btd(#DIGITS(4), #LEADING_ZEROS(1))
     
     
     always {

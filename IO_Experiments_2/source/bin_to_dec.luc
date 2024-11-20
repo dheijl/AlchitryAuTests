@@ -40,10 +40,11 @@ module bin_to_dec #(
 ) {
     always {
         // this line generates invalid Verilog code
-        //digits = DIGITSx{{4d11}}                    // default to invalid number for all digits
+        digits = DIGITSx{{4d11}}                     // default to invalid number for all digits
+        /* and this is a work-around
         repeat(i, DIGITS) {
             digits[i] = 4hb
-        }
+        }*/
 
         sig remainder[$width(value)] = value                // initialize remainder
         sig blank = !LEADING_ZEROS                          // set blank zero flag
