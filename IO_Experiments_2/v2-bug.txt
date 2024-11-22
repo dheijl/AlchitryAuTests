@@ -1,7 +1,18 @@
-INFO: [Synth 8-6157] synthesizing module 'bin_to_dec' [/home/danny/alchitry/IO_Experiments_2/build/vivado/IO_Experiments_2.srcs/sources_1/imports/source/bin_to_dec.sv:7]	
-Parameter DIGITS bound to: 3'b100 	
-Parameter LEADING_ZEROS bound to: 1'b0 
-ERROR: [Synth 8-11587] invalid assignment pattern [/home/danny/alchitry/IO_Experiments_2/build/vivado/IO_Experiments_2.srcs/sources_1/imports/source/bin_to_dec.sv:27]
-ERROR: [Synth 8-6156] failed synthesizing module 'bin_to_dec' [/home/danny/alchitry/IO_Experiments_2/build/vivado/IO_Experiments_2.srcs/sources_1/imports/source/bin_to_dec.sv:7]
-ERROR: [Synth 8-6156] failed synthesizing module 'alchitry_top' [/home/danny/alchitry/IO_Experiments_2/build/vivado/IO_Experiments_2.srcs/sources_1/imports/source/alchitry_top.sv:7]
-
+Failed to convert module "mul10_addbcd" to Verilog!Failed to convert source files to Verilog. 
+This should be considered a bug!Undefined width during verilog conversion!java.lang.IllegalStateException: Undefined width during verilog conversion!	
+at com.alchitry.labs2.parsers.hdl.lucid.SystemVerilogConverter.verilogArrayWidths(SystemVerilogConverter.kt:99)	
+at com.alchitry.labs2.parsers.hdl.lucid.SystemVerilogConverter.verilogArrayWidths(SystemVerilogConverter.kt:94)	
+at com.alchitry.labs2.parsers.hdl.lucid.SystemVerilogConverter.addDffs(SystemVerilogConverter.kt:232)	
+at com.alchitry.labs2.parsers.hdl.lucid.SystemVerilogConverter.exitModule(SystemVerilogConverter.kt:618)	
+at com.alchitry.labs2.parsers.grammar.LucidParser$ModuleContext.exitRule(LucidParser.kt:701)	
+at com.alchitry.labs2.parsers.ParseTreeMultiWalker.exitRule(ParseTreeMultiWalker.kt:111)	
+at com.alchitry.labs2.parsers.ParseTreeMultiWalker.walk(ParseTreeMultiWalker.kt:46)	
+at com.alchitry.labs2.parsers.ParseTreeMultiWalker.walk$default(ParseTreeMultiWalker.kt:10)	
+at com.alchitry.labs2.parsers.hdl.lucid.context.LucidBlockContext.walk(LucidBlockContext.kt:214)	
+at com.alchitry.labs2.parsers.hdl.lucid.context.LucidBlockContext.walk$default(LucidBlockContext.kt:213)	
+at com.alchitry.labs2.parsers.hdl.lucid.context.LucidBlockContext.convertToVerilog(LucidBlockContext.kt:242)	
+at com.alchitry.labs2.parsers.hdl.types.Module.convertToVerilog(Module.kt:29)	at com.alchitry.labs2.parsers.ProjectContext.convertToVerilog(ProjectContext.kt:75)	
+at com.alchitry.labs2.project.Project$build$2.invokeSuspend(Project.kt:316)	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)	
+at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:101)	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:589)	
+at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:832)	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:720)	
+at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:707)
