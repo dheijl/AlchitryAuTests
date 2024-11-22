@@ -12,36 +12,135 @@ module alchitry_top (
     input io_button[5],     // 5 buttons on IO Shield
     input io_dip[3][8]      // DIP switches on IO Shield
 ) {
+
+    // the push buttons
+    const UP = 0
+    const CENTER = 1
+    const DOWN = 2
+    const LEFT = 3
+    const RIGHT = 4
+    const NBUTTONS = 5
+    
+    // the FSM
+    enum State {A, B, SUM} // A: input a, B: input b, SUM: compute and show sum
     
     sig rst                 // reset signal
+    
+    bin_to_dec btd(#DIGITS(4), #LEADING_ZEROS(1))
     
     .clk(clk) {
         // The reset conditioner is used to synchronize the reset signal to the FPGA
         // clock. This ensures the entire FPGA comes out of reset at the same time.
         reset_conditioner reset_cond
+        btn_press btn_chk[NBUTTONS]  
         .rst(rst) {
+            dff state[$width(State)](#INIT(State.A)) // state fsm
+            dff digit_adder[4][4] // 4 bcd adders, one for each decimal digit
+            dff a[4][4] // 4 bcd digits, a input for adder
+            dff b[4][4] // 4 bcd digits, b input for adder
+            dff digit_index[2] // the current decimal digit position in a or b
+            mul10_addbcd bcd_to_bin_a(#DIGITS(4))
+            mul10_addbcd bcd_to_bin_b(#DIGITS(4))
             multi_seven_seg seg (#DIV($is_sim() ? 1 : 16), #DIGITS(4)) // 4 digit 7-segment display
         }
     }
     
-    var_adder va(#BITS(24))
-    bin_to_dec btd(#DIGITS(4), #LEADING_ZEROS(1))
     
     
     always {
         reset_cond.in = ~rst_n  // input raw inverted reset signal
         rst = reset_cond.out    // conditioned reset
         
-        
-        
         led = 8h00              // turn LEDs off
-        
-        
         io_led = 3x{{8h00}}
         io_segment = 8h_f_f
         io_select = 4h_f
         
-        va.x = 1
+        // clear the sum
+        bcd_to_bin_a.bcd = 4x{{4h0}}
+        bcd_to_bin_b.bcd = 4x{{4h0}}
+        btd.value = 0
+
+        // show currently active digit on AU leds [0-3]
+        led[digit_index.q] = 1
+        // show current digit value on right io_leds bank
+        io_led[0][3:0] = digit_adder.q[digit_index.q]
+        // show current FSM state on left io_led bank [2:0]
+        io_led[2][0] = state.q == State.A 
+        io_led[2][1] = state.q == State.B
+        io_led[2][2] = state.q == State.SUM
+           
+        // show the current a or b or sum digits on the display
+        case (state.q) {
+            State.A:
+                seg.values = digit_adder.q
+            State.B:
+                seg.values = digit_adder.q
+            State.SUM:
+                bcd_to_bin_a.bcd = a.q
+                sig partiala[16] = bcd_to_bin_a.result 
+                bcd_to_bin_b.bcd = b.q
+                sig partialb[16] = bcd_to_bin_b.result
+                sig binsum[18] = partiala + partialb 
+                btd.value = binsum[13:0]
+                seg.values = btd.digits
+                sig carry[1] = binsum > 9999
+                if (carry) {
+                    seg.values = 4x{{hb}}
+                }
+                io_led[2][7:7] = carry // set overflow indicator
+            default:
+                // should never happen
+                seg.values = 4x{{4bxxx}}
+        }
+        io_segment = ~seg.seg // connect segments to the driver
+        io_select = ~seg.sel  // connect digit select to the driver
+        
+        // get the debounced buttons pressed state
+        btn_chk.btn_in[NBUTTONS-1:0] = io_button
+        sig add = btn_chk.btn_down[UP]     
+        sig sub = btn_chk.btn_down[DOWN]
+        sig nxt = btn_chk.btn_down[LEFT]
+        sig prv = btn_chk.btn_down[RIGHT]
+        sig enter = btn_chk.btn_down[CENTER]
+        
+        if (add) { // inc the current digit 
+            if (digit_adder.q[digit_index.q] == 9) {
+                digit_adder.d[digit_index.q] = 0
+            } else {
+                digit_adder.d[digit_index.q] = digit_adder.q[digit_index.q] + 1
+            }
+        } else if (sub) { // dec the current digit 
+            if (digit_adder.q[digit_index.q] == 0) {
+                digit_adder.d[digit_index.q] = 9
+            } else {
+                digit_adder.d[digit_index.q] = digit_adder.q[digit_index.q] - 1
+            }
+        } else if (nxt) { // next digit position
+            digit_index.d = digit_index.q + 1
+        } else if (prv) { // previous digit position
+            digit_index.d = digit_index.q - 1
+        } else if (enter) { // advance state machine
+            case (state.q) {
+                State.A:
+                    a.d = digit_adder.q // remember x value
+                    state.d = State.B // set next state
+                State.B:
+                    b.d = digit_adder.q // remember y value
+                    state.d = State.SUM // set next state (activates bcd adder)
+                State.SUM:
+                    state.d = State.A // set next state
+                default:
+                    // should not happen
+                    state.d = State.A
+            }
+            // clean-up for next state
+            digit_adder.d = 4x{{4h0}} // clear a or b
+            digit_index.d = 0 // reset to enter 1st digit
+        }
+        
+/*
+                va.x = 1
         va.y = 2
         va.cin = 0
         io_led = $build(va.sum, 3)
@@ -51,7 +150,7 @@ module alchitry_top (
         seg.values = result
         io_segment = ~seg.seg // connect segments to the driver
         io_select = ~seg.sel  // connect digit select to the driver
-        
+        */
         
         usb_tx = usb_rx         // loop serial port
         

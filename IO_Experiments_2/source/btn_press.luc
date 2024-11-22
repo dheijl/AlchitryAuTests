@@ -1,0 +1,17 @@
+module btn_press (
+    input clk,  // clock
+    input btn_in, 
+    output btn_down
+) {
+    .clk(clk) {
+        edge_detector edge(#RISE(1), #FALL(0)) // detect rising edges
+        
+        button_conditioner btn_cond(#CLK_FREQ($is_sim() ? 1_000 : 100_000_000))     // button input conditioner
+        
+    }
+    always {
+        btn_cond.in = btn_in    // raw button input
+        edge.in = btn_cond.out // input to the edge_detector
+        btn_down = edge.out     // output the state
+    }
+}

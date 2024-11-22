@@ -1,0 +1,22 @@
+module mul10_addbcd #(DIGITS = 4 : DIGITS > 0 && DIGITS < 16)
+(
+    input clk,
+    input rst,
+    input bcd[DIGITS][4],  // bcd digit
+    output result[$clog2($pow(10, DIGITS))] // partial result 
+    
+) {
+    .clk(clk) {
+        .rst(rst) {
+            dff temp[4][$clog2($pow(10, DIGITS))]
+        }
+    }
+    always {
+        temp.d[3] = bcd[3]
+        repeat(i, 3, 3, -1) {
+            temp.d[i-1] = (temp.q[i] << 3) + (temp.q[i] << 1) + bcd[i-1]
+        }
+        
+        result = temp.q[0]  
+    }
+}
