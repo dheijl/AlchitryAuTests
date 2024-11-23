@@ -25,6 +25,9 @@ module alchitry_top (
     enum State {A, B, SUM} // A: input a, B: input b, SUM: compute and show sum
     
     sig rst                 // reset signal
+
+    mul10_addbcd bcd_to_bin_a(#DIGITS(4))
+    mul10_addbcd bcd_to_bin_b(#DIGITS(4))
     
     bin_to_dec btd(#DIGITS(4), #LEADING_ZEROS(1))
     
@@ -39,8 +42,6 @@ module alchitry_top (
             dff a[4][4] // 4 bcd digits, a input for adder
             dff b[4][4] // 4 bcd digits, b input for adder
             dff digit_index[2] // the current decimal digit position in a or b
-            mul10_addbcd bcd_to_bin_a(#DIGITS(4))
-            mul10_addbcd bcd_to_bin_b(#DIGITS(4))
             multi_seven_seg seg (#DIV($is_sim() ? 1 : 16), #DIGITS(4)) // 4 digit 7-segment display
         }
     }
