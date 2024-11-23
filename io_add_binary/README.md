@@ -1,4 +1,4 @@
-### A BCD adder for two 4-digit numbers a and b on the Alchitry AU FPGA kit with the IO Element board.
+### A binary adder for two 4-digit decimal numbers a and b on the Alchitry AU FPGA kit with the IO Element board.
 
 The 5 buttons on the IO board allow you to enter the two numbers a and b and compute the sum:
 
