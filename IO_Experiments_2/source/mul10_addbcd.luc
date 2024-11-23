@@ -8,12 +8,12 @@ module mul10_addbcd #(DIGITS = 4 : DIGITS > 0 && DIGITS < 16)
 ) {
     .clk(clk) {
         .rst(rst) {
-            dff temp[4][$clog2($pow(10, DIGITS)) + 2]
+            dff temp[DIGITS][$clog2($pow(10, DIGITS)) + 2]
         }
     }
     always {
-        temp.d[3] = bcd[3]
-        repeat(i, 3, 3, -1) {
+        temp.d[DIGITS-1] = bcd[DIGITS-1]
+        repeat(i, DIGITS-1, DIGITS-1, -1) {
             temp.d[i-1] = (temp.q[i] << 3) + (temp.q[i] << 1) + bcd[i-1]
         }
         
