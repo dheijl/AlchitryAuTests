@@ -16,7 +16,7 @@ The currently selected digit value of or b is shown on the io board:
 
 The sum is shown on the 7 segment display until the center button is pressed again,ready for the next a value
 
-An overflow condition is shown on the leftmost io led [2][7:7]
+An overflow condition is shown on the leftmost io led [2][7:7], and the display shows the last 4 digits of the sum.
 
 The code is written in Alchitry Labs Lucid, a more ergonomic version of Verilog.
 The Alchitry IDE converts this to Verilog and compiles it with Vivado.
