@@ -1,0 +1,23 @@
+module bcd_add_n #(DIGITS = 4 : DIGITS > 1)
+(
+    input a[DIGITS][4],
+    input b[DIGITS][4],
+    input carry_in[1],
+    output sum[DIGITS][4],
+    output carry[1]
+) {
+    bcd_add bcd_add[DIGITS]
+    
+    always {
+        bcd_add.a[0] = a[0]
+        bcd_add.b[0] = b[0]
+        bcd_add.carry_in[0] = carry_in
+        repeat (i, DIGITS - 1) {
+            bcd_add.a[i + 1] = a[i + 1]
+            bcd_add.b[i + 1] = b[i + 1]
+            bcd_add.carry_in[i + 1] = bcd_add.carry[i]              
+        }
+        sum[3:0] = bcd_add.sum[3:0]
+        carry = bcd_add.carry[3]
+    }
+}

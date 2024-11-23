@@ -1,7 +1,7 @@
 {
     "project": {
         "type": "V1.2",
-        "projectName": "IO_Experiments_2",
+        "projectName": "io_add_decimal",
         "board": "Alchitry Au",
         "sourceFiles": [
             {
@@ -15,6 +15,30 @@
                 "file": {
                     "type": "Component",
                     "path": "Conditioning/reset_conditioner.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "Component",
+                    "path": "Miscellaneous/pipeline.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/btn_press.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "Component",
+                    "path": "Pulses/edge_detector.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "Component",
+                    "path": "Conditioning/button_conditioner.luc"
                 }
             },
             {
@@ -43,38 +67,14 @@
             },
             {
                 "file": {
-                    "type": "Component",
-                    "path": "Miscellaneous/bin_to_dec.luc"
+                    "type": "DiskFile",
+                    "path": "source/bcd_add.luc"
                 }
             },
             {
                 "file": {
                     "type": "DiskFile",
-                    "path": "source/bcd_to_bin.luc"
-                }
-            },
-            {
-                "file": {
-                    "type": "DiskFile",
-                    "path": "source/btn_press.luc"
-                }
-            },
-            {
-                "file": {
-                    "type": "Component",
-                    "path": "Miscellaneous/pipeline.luc"
-                }
-            },
-            {
-                "file": {
-                    "type": "Component",
-                    "path": "Conditioning/button_conditioner.luc"
-                }
-            },
-            {
-                "file": {
-                    "type": "Component",
-                    "path": "Pulses/edge_detector.luc"
+                    "path": "source/bcd_add_n.luc"
                 }
             }
         ],

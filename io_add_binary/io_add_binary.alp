@@ -1,7 +1,7 @@
 {
     "project": {
         "type": "V1.2",
-        "projectName": "IO_Experiments_2",
+        "projectName": "io_add_binary",
         "board": "Alchitry Au",
         "sourceFiles": [
             {

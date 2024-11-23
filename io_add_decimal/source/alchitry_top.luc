@@ -1,5 +1,14 @@
-// reference: https://natalieagus.github.io/50002/fpga/fpga_2
-// Note: Lucid V1 fsm = V2 enum !!
+// A simple adder for two 4-digits inputs with overflow indication
+// up/down button => increment/decrement the currently selected digit
+// left/right button => select the next/previous digit to enter
+// center button => next state:
+//     enter a value => enter b value => show sum => restart
+// the currently selected digit is shown on AU leds[3:0]
+// the currently selected digit value is shown 
+//     - on io_leds[0][3:0] 
+//     - on the io seven segment display
+// the sum is shown on the 7 segment display until the center button is pressed again
+
 module alchitry_top (
     input clk,              // 100MHz clock
     input rst_n,            // reset button (active low)
@@ -12,7 +21,8 @@ module alchitry_top (
     input io_button[5],     // 5 buttons on IO Shield
     input io_dip[3][8]      // DIP switches on IO Shield
 ) {
-
+    sig rst     
+    
     // the push buttons
     const UP = 0
     const CENTER = 1
@@ -24,18 +34,19 @@ module alchitry_top (
     // the FSM
     enum State {A, B, SUM} // A: input a, B: input b, SUM: compute and show sum
     
-    sig rst                 // reset signal
+    // the 4-digit BCD adder
+    bcd_add_n bcda(#DIGITS(4))
+    // the sum
+    sig sum[5][4] // the adder sum, 5 bcd digits 
 
-    bcd_to_bin bcd_to_bin_a(#DIGITS(4))
-    bcd_to_bin bcd_to_bin_b(#DIGITS(4))
-    
-    bin_to_dec btd(#DIGITS(4), #LEADING_ZEROS(1))
     
     .clk(clk) {
-        // The reset conditioner is used to synchronize the reset signal to the FPGA
+        // The reset coditioner is used to synchronize the reset signal to the FPGA
         // clock. This ensures the entire FPGA comes out of reset at the same time.
         reset_conditioner reset_cond
+        // debounce the button press
         btn_press btn_chk[NBUTTONS]  
+        
         .rst(rst) {
             dff state[$width(State)](#INIT(State.A)) // state fsm
             dff digit_adder[4][4] // 4 bcd adders, one for each decimal digit
@@ -47,20 +58,25 @@ module alchitry_top (
     }
     
     
-    
     always {
         reset_cond.in = ~rst_n  // input raw inverted reset signal
         rst = reset_cond.out    // conditioned reset
         
-        led = 8h00              // turn LEDs off
-        io_led = 3x{{8h00}}
-        io_segment = 8h_f_f
-        io_select = 4h_f
+        // read dips switches, unused for now
+        sig dips[3][8] = io_dip
+
+        // initial state of indicators
+        led = 8h00
+        io_led = 3x{{8h00}}       
+        io_select = 4b1
+        io_segment = 8b1
         
+        // clear the bcd adder
+        bcda.a = 4x{{4h0}}
+        bcda.b = 4x{{4h0}}
+        bcda.carry_in = 1b0  
         // clear the sum
-        bcd_to_bin_a.bcd = 4x{{4h0}}
-        bcd_to_bin_b.bcd = 4x{{4h0}}
-        btd.value = 0
+        sum = 5x{{4h0}}
 
         // show currently active digit on AU leds [0-3]
         led[digit_index.q] = 1
@@ -78,18 +94,13 @@ module alchitry_top (
             State.B:
                 seg.values = digit_adder.q
             State.SUM:
-                bcd_to_bin_a.bcd = a.q
-                sig partiala[16] = bcd_to_bin_a.result 
-                bcd_to_bin_b.bcd = b.q
-                sig partialb[16] = bcd_to_bin_b.result
-                sig binsum[18] = partiala + partialb 
-                btd.value = binsum[13:0]
-                seg.values = btd.digits
-                sig carry[1] = binsum > 9999
-                if (carry) {
-                    seg.values = 4x{{hb}}
-                }
-                io_led[2][7:7] = carry // set overflow indicator
+                bcda.a = a.q
+                bcda.b = b.q
+                bcda.carry_in = 0
+                sum[3:0] = bcda.sum
+                sum[4][0:0] = bcda.carry
+                seg.values = sum[3:0]
+                io_led[2][7:7] = bcda.carry // set overflow indicator
             default:
                 // should never happen
                 seg.values = 4x{{4bxxx}}
@@ -140,21 +151,6 @@ module alchitry_top (
             digit_index.d = 0 // reset to enter 1st digit
         }
         
-/*
-                va.x = 1
-        va.y = 2
-        va.cin = 0
-        io_led = $build(va.sum, 3)
-        
-        btd.value = va.sum[13:0]
-        sig result[4][4] = btd.digits
-        seg.values = result
-        io_segment = ~seg.seg // connect segments to the driver
-        io_select = ~seg.sel  // connect digit select to the driver
-        */
-        
-        usb_tx = usb_rx         // loop serial port
-        
-        
+        usb_tx = usb_rx        // loop serial port      
     }
 }
