@@ -1,11 +1,11 @@
 module bcd_to_bin #(DIGITS = 4 : DIGITS > 0 && DIGITS < 16)
 (
     input bcd[DIGITS][4],  // bcd digits
-    output result[$clog2($pow(10, DIGITS)) + 2] // result 
+    output result[$clog2($pow(10, DIGITS))] // result 
     
 ) {
     
-    sig temp[DIGITS][$clog2($pow(10, DIGITS)) + 2]
+    sig temp[DIGITS][$clog2($pow(10, DIGITS))]
     
     always {
         temp[DIGITS-1] = bcd[DIGITS-1]

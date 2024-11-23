@@ -29,7 +29,7 @@ module alchitry_top (
     bcd_to_bin bcd_to_bin_a(#DIGITS(4))
     bcd_to_bin bcd_to_bin_b(#DIGITS(4))
     
-    bin_to_dec btd(#DIGITS(4), #LEADING_ZEROS(1))
+    bin_to_dec btd(#DIGITS(5), #LEADING_ZEROS(1))
     
     .clk(clk) {
         // The reset conditioner is used to synchronize the reset signal to the FPGA
@@ -51,6 +51,8 @@ module alchitry_top (
     always {
         reset_cond.in = ~rst_n  // input raw inverted reset signal
         rst = reset_cond.out    // conditioned reset
+        
+        sig dips[3][8] = io_dip
         
         led = 8h00              // turn LEDs off
         io_led = 3x{{8h00}}
@@ -79,16 +81,16 @@ module alchitry_top (
                 seg.values = digit_adder.q
             State.SUM:
                 bcd_to_bin_a.bcd = a.q
-                sig partiala[16] = bcd_to_bin_a.result 
+                sig partiala[14] = bcd_to_bin_a.result 
                 bcd_to_bin_b.bcd = b.q
-                sig partialb[16] = bcd_to_bin_b.result
-                sig binsum[18] = partiala + partialb 
-                btd.value = binsum[13:0]
-                seg.values = btd.digits
-                sig carry[1] = binsum > 9999
-                if (carry) {
+                sig partialb[14] = bcd_to_bin_b.result
+                sig binsum[15] = partiala + partialb 
+                btd.value = binsum[14:0]
+                seg.values = btd.digits[3:0]
+                sig carry[1] = btd.digits[4] > 0
+/*                if (carry) {
                     seg.values = 4x{{hb}}
-                }
+                }*/
                 io_led[2][7:7] = carry // set overflow indicator
             default:
                 // should never happen
