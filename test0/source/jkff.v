@@ -1,8 +1,10 @@
 module jkff (
-    input clk,
-    input rst,
-  input  J, K,
-  output Q, Qn
+  input clk,
+  input rst,
+  input J, 
+  input K,
+  output Q, 
+  output Qn
 );
   always @(posedge clk, posedge rst) begin
     if (rst) begin

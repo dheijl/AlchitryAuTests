@@ -1,8 +1,9 @@
 module tff (
-    input clk,
-    input rst,
+  input clk,
+  input rst,
   input  T,
-  output Q, Qn
+  output Q, 
+  output Qn
 );
   always @(posedge clk, posedge rst) begin
     if (rst) begin

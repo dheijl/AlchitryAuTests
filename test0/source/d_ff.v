@@ -1,8 +1,9 @@
 module d_ff (
-    input clk,
-    input rst,
-  input  D, clk, rst,
-  output Q, Qn
+  input clk,
+  input rst,
+  input  D,
+  output Q,
+  output Qn
 );
   always @(posedge clk, posedge rst) begin
     if (rst) begin

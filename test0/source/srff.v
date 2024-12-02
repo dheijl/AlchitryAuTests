@@ -1,6 +1,6 @@
 module srff (
-    input clk,
-    input rst,
+  input clk,
+  input rst,
   input  S, R,
   output Q, Qn
 );
