@@ -12,11 +12,18 @@ module alchitry_top (
         // The reset conditioner is used to synchronize the reset signal to the FPGA
         // clock. This ensures the entire FPGA comes out of reset at the same time.
         reset_conditioner reset_cond
+        .rst(rst) {
+            fifo s_f(#WIDTH(16), #ENTRIES(256))
+        }
     }
 
     always {
         reset_cond.in = ~rst_n  // input raw inverted reset signal
         rst = reset_cond.out    // conditioned reset
+        s_f.din = 0
+        s_f.wput = 0
+        s_f.rget = 0
+        
 
         led = 8h00              // turn LEDs off
 
