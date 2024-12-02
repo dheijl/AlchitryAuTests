@@ -1,7 +1,7 @@
 module srff (
     input clk,
     input rst,
-  input  S, R, clk, rst,
+  input  S, R,
   output Q, Qn
 );
   always @(posedge clk, posedge rst) begin

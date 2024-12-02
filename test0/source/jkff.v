@@ -1,7 +1,7 @@
 module jkff (
     input clk,
     input rst,
-  input  J, K, clk, rst,
+  input  J, K,
   output Q, Qn
 );
   always @(posedge clk, posedge rst) begin

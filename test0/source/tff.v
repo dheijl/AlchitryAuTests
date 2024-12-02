@@ -1,7 +1,7 @@
 module tff (
     input clk,
     input rst,
-  input  T, clk, rst,
+  input  T,
   output Q, Qn
 );
   always @(posedge clk, posedge rst) begin
