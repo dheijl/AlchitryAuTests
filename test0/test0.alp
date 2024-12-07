@@ -64,6 +64,66 @@
                     "type": "DiskFile",
                     "path": "source/tff.v"
                 }
+            },
+            {
+                "file": {
+                    "type": "Component",
+                    "path": "LED Effects/wave.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "Component",
+                    "path": "Miscellaneous/counter.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "Component",
+                    "path": "LED Effects/pwm.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "Component",
+                    "path": "Interfaces/spi_controller.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "Component",
+                    "path": "Interfaces/spi_peripheral.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "Component",
+                    "path": "Interfaces/i2c_controller.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "Component",
+                    "path": "Interfaces/i2c_peripheral.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "Component",
+                    "path": "Interfaces/register_interface.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "Component",
+                    "path": "Interfaces/uart_rx.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "Component",
+                    "path": "Interfaces/uart_tx.luc"
+                }
             }
         ],
         "constraintFiles": [
