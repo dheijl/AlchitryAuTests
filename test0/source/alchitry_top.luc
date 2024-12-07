@@ -33,34 +33,23 @@ module alchitry_top (
         
         tx.block = 0
         
-        led = 8h00
-        
-        if (rx.new_data)  {
-            if (!s_f.full) {
-                s_f.din = rx.data
-                s_f.wput = 1
-                led = 8h01
-            }
-        } else {
-            led = 8h02
-        }
-        
-        if (! s_f.empty) {
-            if (! tx.busy) {
-                s_f.rget = 1
-                tx.data = s_f.dout 
-                tx.new_data = 1
-                led = 8h03
-            } else {
-                tx.data = 0
-                tx.new_data = 0
-                led = 8h04
-            }
+        if (! s_f.empty && !tx.busy ) {
+            s_f.rget = 1
+            tx.data = s_f.dout 
+            tx.new_data = 1
+            led = 8h00
         } else {
             tx.data = 0
             tx.new_data = 0
-            led = 8h05
+            led = 8h01
         }
         
+        if (rx.new_data && !s_f.full) {
+            s_f.din = rx.data
+            s_f.wput = 1
+            led = 8h02
+        } else {
+            led = 8h03
+        }      
     }
 }
