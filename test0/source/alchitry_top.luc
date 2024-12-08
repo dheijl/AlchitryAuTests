@@ -48,8 +48,10 @@ module alchitry_top (
             s_f.din = rx.data
             s_f.wput = 1
             led = 8h02
-        } else {
+        } else if (!s_f.full) {
             led = 8h03
+        } else {
+            led = 8hxx
         }      
     }
 }
