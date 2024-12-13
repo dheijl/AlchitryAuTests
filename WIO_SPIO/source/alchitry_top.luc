@@ -1,0 +1,112 @@
+module alchitry_top (
+    input clk,              // 100MHz clock
+    input rst_n,            // reset button (active low)
+    output led[8],          // 8 user controllable LEDs
+    input usb_rx,           // USB->Serial input
+    output usb_tx,           // USB->Serial output
+    input sck,     // spi clock
+    input sdi,     // spi mosi
+    output sdo,    // spi miso
+    input cs        // spi slave select
+) {
+    /*
+    SPI Mode 0 = CPOL 0 CPHA 0
+    SPI Mode 1 = CPOL 0 CPHA 1
+    SPI Mode 2 = CPOL 1 CPHA 0
+    SPI Mode 3 = CPOL 1 CPHA 1
+    */    
+    
+    sig rst                 // reset signal
+    
+    .clk(clk) {
+        // The reset conditioner is used to synchronize the reset signal to the FPGA
+        // clock. This ensures the entire FPGA comes out of reset at the same time.
+        reset_conditioner reset_cond
+        .rst(rst) {
+            fifo echo (#WIDTH(8), #ENTRIES(256))
+            fifo forward (#WIDTH(8), #ENTRIES(256))
+            uart_rx rx (#BAUD(1000000), #CLK_FREQ(100000000))
+            uart_tx tx (#BAUD(1000000), #CLK_FREQ(100000000))   
+            spi_peripheral spi (#CPOL(0), #CPHA(0), .cs(cs), .sck(sck), .sdi(sdi))
+            dff have_char[1]
+            dff next_char[8]
+        }
+    }
+    
+    always {
+        reset_cond.in = ~rst_n  // input raw inverted reset signal
+        rst = reset_cond.out    // conditioned reset
+        
+        // connect usb
+        tx.block = 0
+        rx.rx = usb_rx
+        usb_tx = tx.tx
+        
+        // connect spi
+        spi.data_in = 8h00
+        sdo = spi.sdo
+        
+        // init echo fifo
+        echo.din = 0
+        echo.wput = 0
+        echo.rget = 0
+        
+        // init forward fifo
+        forward.din =0
+        forward.wput = 0
+        forward.rget = 0
+        
+        // leds
+        led[0] = echo.empty
+        led[1] = echo.full
+        led[2] = forward.empty
+        led[3] = forward.full
+        led[7] = cs
+        led[6] = sck
+        led[5] = 0
+        led[4] = 0
+        
+        
+        // data has to be ready to send upfront
+        if (!have_char.q) {
+            if (!forward.empty) {
+                forward.rget = 1
+                next_char.d = forward.dout
+            } else {
+                next_char.d = 8hff
+            }
+            have_char.d = 1
+        }
+        spi.data_in = next_char.q
+        
+        // echo eceived characters (spi or console) to console
+        if (! echo.empty && !tx.busy ) {
+            echo.rget = 1
+            tx.data = echo.dout 
+            tx.new_data = 1
+        } else {
+            tx.data = 0
+            tx.new_data = 0
+        }
+        
+        // store input from console in spi forward buffer
+        if (rx.new_data && !echo.full) {
+            echo.din = rx.data
+            echo.wput = 1
+            if (! forward.full)  {
+                forward.din = rx.data
+                forward.wput = 1
+            }
+        } 
+        // store received spi inout in console echo buffer
+        if (cs == 0) { 
+            if (spi.done) {
+                have_char.d = 0 // need next char to send
+                if (!echo.full) {
+                    echo.din = spi.data_out
+                    echo.wput = 1
+                }    
+            }
+        } 
+    }
+}
