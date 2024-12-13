@@ -28,6 +28,8 @@ module alchitry_top (
             uart_rx rx (#BAUD(1000000), #CLK_FREQ(100000000))
             uart_tx tx (#BAUD(1000000), #CLK_FREQ(100000000))   
             spi_peripheral spi (#CPOL(0), #CPHA(0), .cs(cs), .sck(sck), .sdi(sdi))
+            dff have_char[1]
+            dff next_char[8]
         }
     }
     
@@ -54,44 +56,57 @@ module alchitry_top (
         forward.wput = 0
         forward.rget = 0
         
+        // leds
+        led[0] = echo.empty
+        led[1] = echo.full
+        led[2] = forward.empty
+        led[3] = forward.full
+        led[7] = cs
+        led[6] = sck
+        led[5] = 0
+        led[4] = 0
+        
+        
+        // data has to be ready to send upfront
+        if (!have_char.q) {
+            if (!forward.empty) {
+                forward.rget = 1
+                next_char.d = forward.dout
+            } else {
+                next_char.d = 8hff
+            }
+            have_char.d = 1
+        }
+        spi.data_in = next_char.q
+        
+        // echo eceived characters (spi or console) to console
         if (! echo.empty && !tx.busy ) {
             echo.rget = 1
             tx.data = echo.dout 
             tx.new_data = 1
-            led = 8h00
         } else {
             tx.data = 0
             tx.new_data = 0
-            led = 8h01
         }
         
-        
+        // store input from console in spi forward buffer
         if (rx.new_data && !echo.full) {
             echo.din = rx.data
             echo.wput = 1
-            led = 8h02
             if (! forward.full)  {
                 forward.din = rx.data
                 forward.wput = 1
             }
-        } else if (!echo.full) {
-            led = 8h03
-        } else {
-            led = 8hxx
-        }  
-        
+        } 
+        // store received spi inout in console echo buffer
         if (cs == 0) { 
-            led = 8hff
-            if(!forward.empty) {
-                forward.rget = 1
-                spi.data_in = forward.dout
-            } else {
-                spi.data_in = 8hff
+            if (spi.done) {
+                have_char.d = 0 // need next char to send
+                if (!echo.full) {
+                    echo.din = spi.data_out
+                    echo.wput = 1
+                }    
             }
-            if (spi.done && !echo.full) {
-                echo.din = spi.data_out
-                echo.wput = 1
-            }           
         } 
     }
 }

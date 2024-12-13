@@ -1,4 +1,4 @@
 pin sck A5
 pin sdi A6
-pin sdo A3
+pin sdo A9
 pin cs A2
