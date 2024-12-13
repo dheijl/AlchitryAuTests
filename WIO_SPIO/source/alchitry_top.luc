@@ -99,14 +99,12 @@ module alchitry_top (
             }
         } 
         // store received spi inout in console echo buffer
-        if (cs == 0) { 
-            if (spi.done) {
-                have_char.d = 0 // need next char to send
-                if (!echo.full) {
-                    echo.din = spi.data_out
-                    echo.wput = 1
-                }    
-            }
-        } 
+        if (spi.done) {
+            have_char.d = 0 // need next char to send
+            if (!echo.full) {
+                echo.din = spi.data_out
+                echo.wput = 1
+            }    
+        }
     }
 }
