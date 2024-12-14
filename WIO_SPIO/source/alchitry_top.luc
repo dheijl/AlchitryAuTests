@@ -67,17 +67,6 @@ module alchitry_top (
         led[4] = 0
         
         
-        // data has to be ready to send upfront
-        if (!have_char.q) {
-            if (!forward.empty) {
-                forward.rget = 1
-                next_char.d = forward.dout
-            } else {
-                next_char.d = 8hff
-            }
-            have_char.d = 1
-        }
-        spi.data_in = next_char.q
         
         // echo eceived characters (spi or console) to console
         if (! echo.empty && !tx.busy ) {
@@ -98,6 +87,19 @@ module alchitry_top (
                 forward.wput = 1
             }
         } 
+        
+        // SPI data has to be ready to send before SPI transfer starts
+        if (!have_char.q) {
+            if (!forward.empty) {
+                forward.rget = 1
+                next_char.d = forward.dout
+            } else {
+                next_char.d = 8hff
+            }
+            have_char.d = 1
+        }
+        spi.data_in = next_char.q
+        
         // store received spi inout in console echo buffer
         if (spi.done) {
             have_char.d = 0 // need next char to send
@@ -106,5 +108,5 @@ module alchitry_top (
                 echo.wput = 1
             }    
         }
-    }
+    }    
 }
