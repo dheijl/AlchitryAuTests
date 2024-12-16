@@ -87,8 +87,10 @@ module alchitry_top (
             }
         } 
         
+        // miso high impedance if not selected, and prpare next transmit
         if (cs == 1) {
             next_char.d = 8hff
+            sdo = 1bz
         } else {
             if (spi.done) {
                 // get next char to transmit from console buffer
@@ -97,15 +99,16 @@ module alchitry_top (
                     forward.rget = 1
                     c = forward.dout
                 } 
-                spi.data_in = c
                 // store received spi char in console echo buffer
                 if (!echo.full) {
                     echo.din = spi.data_out
                     echo.wput = 1
                 }    
+                spi.data_in = c
                 next_char.d = c
+            } else {
+                spi.data_in = next_char.q 
             }
         }
-        spi.data_in = next_char.q 
     }    
 }
