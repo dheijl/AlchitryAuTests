@@ -99,7 +99,7 @@ module alchitry_top (
             spi.data_in = next_char.q
             sdo = spi.sdo
             if (spi.done) {
-                // 
+                // for next SPI conversation
                 tx_primed.d = 0
                 // get next char to transmit from console buffer
                 sig c[8] = 8hff
