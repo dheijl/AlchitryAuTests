@@ -20,12 +20,6 @@
             {
                 "file": {
                     "type": "Component",
-                    "path": "Interfaces/spi_peripheral.luc"
-                }
-            },
-            {
-                "file": {
-                    "type": "Component",
                     "path": "Memory/simple_dual_port_ram.v"
                 }
             },
@@ -45,6 +39,12 @@
                 "file": {
                     "type": "Component",
                     "path": "Interfaces/uart_tx.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/spi_peripheral.luc"
                 }
             }
         ],

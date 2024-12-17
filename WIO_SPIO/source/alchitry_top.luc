@@ -30,6 +30,7 @@ module alchitry_top (
             spi_peripheral spi (#CPOL(0), #CPHA(1), .cs(cs), .sck(sck), .sdi(sdi))
         }
         dff next_char[8]
+        dff tx_primed
     }
     
     always {
@@ -40,10 +41,6 @@ module alchitry_top (
         tx.block = 0
         rx.rx = usb_rx
         usb_tx = tx.tx
-        
-        // connect spi
-        spi.data_in = 8h00
-        sdo = spi.sdo
         
         // init echo fifo
         echo.din = 0
@@ -65,8 +62,6 @@ module alchitry_top (
         led[5] = 0
         led[4] = 0
         
-        
-        
         // echo eceived characters (spi or console) to console
         if (! echo.empty && !tx.busy ) {
             echo.rget = 1
@@ -87,28 +82,40 @@ module alchitry_top (
             }
         } 
         
-        // miso high impedance if not selected, and prpare next transmit
+        // miso high impedance if not selected, and prepare first transmit
         if (cs == 1) {
-            next_char.d = 8hff
             sdo = 1bz
+            sig c[8] = 8hff
+            if (!tx_primed.q) {
+                if (!forward.empty) {
+                    forward.rget = 1
+                    c = forward.dout
+                    next_char.d = c
+                } 
+                tx_primed.d = 1   
+            }
+            spi.data_in = c
         } else {
+            spi.data_in = next_char.q
+            sdo = spi.sdo
             if (spi.done) {
+                // 
+                tx_primed.d = 0
                 // get next char to transmit from console buffer
                 sig c[8] = 8hff
                 if (!forward.empty) {
                     forward.rget = 1
                     c = forward.dout
                 } 
+                spi.data_in = c
+                next_char.d = c
                 // store received spi char in console echo buffer
                 if (!echo.full) {
                     echo.din = spi.data_out
                     echo.wput = 1
                 }    
-                spi.data_in = c
-                next_char.d = c
-            } else {
-                spi.data_in = next_char.q 
-            }
+            } 
+            spi.data_in = next_char.q 
         }
     }    
 }
