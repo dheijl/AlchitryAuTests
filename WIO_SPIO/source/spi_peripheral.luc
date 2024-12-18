@@ -33,7 +33,6 @@ module spi_peripheral #(
 )(
     input clk,          // clock
     input rst,          // reset
-    input hf_clk,       // 200 MHz clock
     input cs,           // SPI chip select
     input sdi,          // SPI data in
     output sdo,         // SPI data out

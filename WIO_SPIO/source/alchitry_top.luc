@@ -17,19 +17,6 @@ module alchitry_top (
     */    
     
     sig rst                 // reset signal
-    clk_wiz_0 spi_clock(
-        .reset(rst), 
-        .clk_in1(clk)
-    )
-    spi_peripheral spi (#CPOL(0), #CPHA(1), 
-        .clk(spi_clock.clk_out1),
-        .rst(!spi_clock.locked),
-        .hf_clk(spi_clock.clk_out2),
-        .cs(cs), 
-        .sck(sck), 
-        .sdi(sdi))
-    
-    
     
     .clk(clk) {
         // The reset conditioner is used to synchronize the reset signal to the FPGA
@@ -40,6 +27,7 @@ module alchitry_top (
             fifo forward (#WIDTH(8), #ENTRIES(256))
             uart_rx rx (#BAUD(1000000), #CLK_FREQ(100000000))
             uart_tx tx (#BAUD(1000000), #CLK_FREQ(100000000))   
+            spi_peripheral spi (#CPOL(0), #CPHA(1), .cs(cs), .sck(sck), .sdi(sdi))
         }
         dff tx_primed        // flag to prepare the first transmit character
         dff next_char[8]     // the character to transmit
