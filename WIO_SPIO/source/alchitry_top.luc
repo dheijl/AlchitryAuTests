@@ -7,7 +7,7 @@ module alchitry_top (
     input sck,     // spi clock
     input sdi,     // spi mosi
     output sdo,    // spi miso
-    input cs        // spi slave select
+    input cs       // spi slave select
 ) {
     /*
     SPI Mode 0 = CPOL 0 CPHA 0
@@ -29,8 +29,8 @@ module alchitry_top (
             uart_tx tx (#BAUD(1000000), #CLK_FREQ(100000000))   
             spi_peripheral spi (#CPOL(0), #CPHA(1), .cs(cs), .sck(sck), .sdi(sdi))
         }
-        dff tx_primed        // flag to prepare the first transmit character
-        dff next_char[8]     // the character to transmit
+        dff tx_buf_rdy     // tx buffer contains the next transmit character flag
+        dff tx_buf[8]      // the character to transmit
     }
     
     always {
@@ -87,29 +87,34 @@ module alchitry_top (
         
         // make sure the first byte is ready when SPI transfer starts
         sig c[8] = 8hff
-        if (!tx_primed.q) {
+        if (!tx_buf_rdy.q) {
             if (!forward.empty) {
                 forward.rget = 1
                 c = forward.dout
             } 
-            tx_primed.d = 1   
-            next_char.d = c
+            tx_buf.d = c
+            tx_buf_rdy.d = 1   
         } 
         
-        if (cs == 1) {                // if not selected:
-            spi.data_in = next_char.q // prep first tx character
-        } else {                      // SPI busy
-            spi.data_in = next_char.q // make sure the tx character is ready
-            if (spi.done) {
-                // for next char
+        if (cs == 1) {                // if SPI idle
+            spi.data_in = tx_buf.q    // prep first tx character
+        } else {                      // SPI is busy
+            // make sure we always have the next tx char ready
+            if (! tx_buf_rdy.q) {
+                // get next char to transmit from console fifo
                 if (!forward.empty) {
                     forward.rget = 1
                     c = forward.dout
                 } else {
                     c = 8hff
                 }
-                spi.data_in = c
-                next_char.d = c
+                // make the next tx char available
+                tx_buf.d = c
+                tx_buf_rdy.d = 1
+            }
+            spi.data_in = tx_buf.q // make sure the tx character is available
+            if (spi.done) {
+                tx_buf_rdy.d = 0
                 // store received spi char in console echo buffer
                 if (!echo.full) {
                     echo.din = spi.data_out
