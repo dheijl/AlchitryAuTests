@@ -89,23 +89,25 @@ module alchitry_top (
                 tx_data.d = 1
             }
         } 
+        // set the data available line
         data_rdy = tx_data.q
         // make sure the first byte is ready when SPI transfer starts
-        sig c[8] = 8hff
+        sig c[8] = 8hFF
         if (!tx_buf_rdy.q) {
             if (!forward.empty) {
                 forward.rget = 1
                 c = forward.dout
-            } 
-            tx_buf.d = c
-            tx_buf_rdy.d = 1   
+                spi.data_in = c
+                tx_buf.d = c
+                tx_buf_rdy.d = 1   
+            } else {
+                data_rdy = 0
+                tx_data.d = 0
+                tx_buf.d = c
+            }
         } 
-        
-        if (cs == 1) {                // if SPI idle
-            spi.data_in = tx_buf.q    // prep first tx character
-        } else {                      // SPI is busy
-            // make sure we always have the next tx char ready
-            spi.data_in = tx_buf.q // make sure the tx character is available
+        spi.data_in = tx_buf.q
+        if (cs == 0) {                // if SPI active
             if (spi.done) {
                 tx_buf_rdy.d = 0
                 // store received spi char in console echo buffer
@@ -114,10 +116,6 @@ module alchitry_top (
                     echo.wput = 1
                 }    
             } 
-        }
-        if (forward.empty) {
-            data_rdy = 0
-            tx_data.d = 0
         }
     }    
 }
