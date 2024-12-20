@@ -7,7 +7,8 @@ module alchitry_top (
     input sck,     // spi clock
     input sdi,     // spi mosi
     output sdo,    // spi miso
-    input cs       // spi slave select
+    input cs,       // spi slave select
+    output data_rdy // spi tx data avaiable
 ) {
     /*
     SPI Mode 0 = CPOL 0 CPHA 0
@@ -31,6 +32,7 @@ module alchitry_top (
         }
         dff tx_buf_rdy     // tx buffer contains the next transmit character flag
         dff tx_buf[8]      // the character to transmit
+        dff tx_data        // tx data available flag
     }
     
     always {
@@ -62,7 +64,7 @@ module alchitry_top (
         led[3] = forward.full
         led[7] = cs
         led[6] = sck
-        led[5] = 0
+        led[5] = tx_data.q
         led[4] = 0
         
         // echo eceived characters (spi or console) to console
@@ -83,8 +85,11 @@ module alchitry_top (
                 forward.din = rx.data
                 forward.wput = 1
             }
+            if (rx.data == 8h0a) {
+                tx_data.d = 1
+            }
         } 
-        
+        data_rdy = tx_data.q
         // make sure the first byte is ready when SPI transfer starts
         sig c[8] = 8hff
         if (!tx_buf_rdy.q) {
@@ -100,18 +105,6 @@ module alchitry_top (
             spi.data_in = tx_buf.q    // prep first tx character
         } else {                      // SPI is busy
             // make sure we always have the next tx char ready
-            if (! tx_buf_rdy.q) {
-                // get next char to transmit from console fifo
-                if (!forward.empty) {
-                    forward.rget = 1
-                    c = forward.dout
-                } else {
-                    c = 8hff
-                }
-                // make the next tx char available
-                tx_buf.d = c
-                tx_buf_rdy.d = 1
-            }
             spi.data_in = tx_buf.q // make sure the tx character is available
             if (spi.done) {
                 tx_buf_rdy.d = 0
@@ -121,6 +114,10 @@ module alchitry_top (
                     echo.wput = 1
                 }    
             } 
+        }
+        if (forward.empty) {
+            data_rdy = 0
+            tx_data.d = 0
         }
     }    
 }
