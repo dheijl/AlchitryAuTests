@@ -40,7 +40,7 @@ module alchitry_top (
         rst = reset_cond.out    // conditioned reset
         
         // connect usb
-        tx.block = 0
+        tx.block = 1b0
         rx.rx = usb_rx
         usb_tx = tx.tx
         
@@ -48,14 +48,14 @@ module alchitry_top (
         sdo = spi.sdo
         
         // init echo fifo
-        echo.din = 0
-        echo.wput = 0
-        echo.rget = 0
+        echo.din = 1b0
+        echo.wput = 1b0
+        echo.rget = 1b0
         
         // init forward fifo
-        forward.din =0
-        forward.wput = 0
-        forward.rget = 0
+        forward.din = 1b0
+        forward.wput = 1b0
+        forward.rget = 1b0
         
         // leds
         led[0] = echo.empty
@@ -65,28 +65,32 @@ module alchitry_top (
         led[7] = cs
         led[6] = sck
         led[5] = tx_data.q
-        led[4] = 0
+        led[4] = 1b0
         
         // echo eceived characters (spi or console) to console
         if (! echo.empty && !tx.busy ) {
-            echo.rget = 1
+            echo.rget = 1b1
             tx.data = echo.dout 
-            tx.new_data = 1
+            tx.new_data = 1b1
         } else {
-            tx.data = 0
-            tx.new_data = 0
+            tx.data = 1b0
+            tx.new_data = 1b0
         }
         
         // store input from console in spi forward buffer
+        if (forward.full) {
+            tx_data.d = 1b1
+        }
         if (rx.new_data && !echo.full) {
-            echo.din = rx.data
-            echo.wput = 1
+            sig ch[8] = rx.data
+            echo.din = ch
+            echo.wput = 1b1
             if (! forward.full)  {
-                forward.din = rx.data
-                forward.wput = 1
+                forward.din = ch
+                forward.wput = 1b1
             }
-            if (rx.data == 8h0a) {
-                tx_data.d = 1
+            if (ch == 8h0A) {
+                tx_data.d = 1b1
             }
         } 
         // set the data available line
@@ -95,25 +99,25 @@ module alchitry_top (
         sig c[8] = 8hFF
         if (!tx_buf_rdy.q) {
             if (!forward.empty) {
-                forward.rget = 1
+                forward.rget = 1b1
                 c = forward.dout
                 spi.data_in = c
                 tx_buf.d = c
-                tx_buf_rdy.d = 1   
+                tx_buf_rdy.d = 1b1   
             } else {
-                data_rdy = 0
-                tx_data.d = 0
+                data_rdy = 1b0
+                tx_data.d = 1b0
                 tx_buf.d = c
             }
         } 
         spi.data_in = tx_buf.q
-        if (cs == 0) {                // if SPI active
+        if (cs == 1b0) {              // if SPI active
             if (spi.done) {
-                tx_buf_rdy.d = 0
+                tx_buf_rdy.d = 1b0
                 // store received spi char in console echo buffer
                 if (!echo.full) {
                     echo.din = spi.data_out
-                    echo.wput = 1
+                    echo.wput = 1b1
                 }    
             } 
         }
