@@ -1,5 +1,7 @@
-pin sck A5
-pin sdi A6
-pin sdo A9
-pin cs A2
-pin data_rdy A8
+STANDARD(LVCMOS33) {
+    pin sck A5
+    pin sdi A6
+    pin sdo A9
+    pin cs A2
+    pin data_rdy A8
+}

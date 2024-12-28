@@ -1,6 +1,6 @@
 {
     "project": {
-        "type": "V1.2",
+        "type": "V1.3",
         "projectName": "WIO_SPIO",
         "board": "Alchitry Au",
         "sourceFiles": [
