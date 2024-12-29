@@ -25,3 +25,18 @@ What does it do:
 - the AU sets the data_ready pin low when the tx fifo has been emptied by the SPI transfer(s) of the WIO
 
 For the corresponding WIO terminal project source, see [here](https://github.com/dheijl/wio_spi).
+
+Because I didn't know if the SPI 12 MHz limitation was situated at the WIO side, I did the same experiment with a Teensy 4.1 ([source code](https://github.com/dheijl/Teensy_SPI)).
+
+Wiring: 
+- cs = A2 -> Teensy pin 0 (yellow)
+- sck = A5 -> Teensy pin 27 (orange)
+- miso = A9 -> Teensy pin 1 (red)
+- mosi = A6 -> Teensy pin 26 (brown)
+- data_rdy = A8 -> Teensy pin 5 (IN2) (black)
+- GND -> Teensy GND (green)
+- 
+![20241229_180750-EDIT](https://github.com/user-attachments/assets/f7f43510-f85a-43ee-8b5f-6201d4f0a7b9)
+
+
+
