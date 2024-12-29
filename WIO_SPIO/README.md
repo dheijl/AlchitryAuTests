@@ -1,6 +1,6 @@
 # SPI Slave test
 
-Proof of concept for SPI communication between the AU + Br and a Seeed Wio Terminal.
+Proof of concept for SPI communication between the Alchitry AU FPGA + Br breakout board and a Seeed Wio Terminal (120 MHz Microchip SAMD51).
 
 The AU uses the following pins on the Br:
 
@@ -25,7 +25,9 @@ What does it do:
 
 For the corresponding WIO terminal project source, see [here](https://github.com/dheijl/wio_spi).
 
-Because I didn't know if the SPI 12 MHz limitation was situated at the WIO side, I did the same experiment with a Teensy 4.1 ([source code](https://github.com/dheijl/Teensy_SPI)).
+The SPI communication works only reliable up to 12 MHz, while reception on the AU worked at 24 MHz, the WIO missed bits when receiving at speeds > 12 MHz.
+Because I didn't know if the SPI 12 MHz limitation was situated at the WIO side, I did the same experiment with a Teensy 4.1 5 (600 MHz Cortex M7 NXP IMXRT1062DVJ6). 
+See [source code](https://github.com/dheijl/Teensy_SPI).
 
 Wiring:
 
