@@ -29,10 +29,10 @@ module alchitry_top (
             uart_rx rx (#BAUD(1000000), #CLK_FREQ(100000000))
             uart_tx tx (#BAUD(1000000), #CLK_FREQ(100000000))   
             spi_peripheral spi (#CPOL(0), #CPHA(1), .cs(cs), .sck(sck), .sdi(sdi))
+            dff tx_data    // tx data available flag
         }
         dff tx_buf_rdy     // tx buffer contains the next transmit character flag
         dff tx_buf[8]      // the character to transmit
-        dff tx_data        // tx data available flag
     }
     
     always {
@@ -62,7 +62,7 @@ module alchitry_top (
         led[1] = echo.full
         led[2] = forward.empty
         led[3] = forward.full
-        led[7] = cs
+        led[7] = ~cs
         led[6] = sck
         led[5] = tx_data.q
         led[4] = 1b0
@@ -80,6 +80,8 @@ module alchitry_top (
         // store input from console in spi forward buffer
         if (forward.full) {
             tx_data.d = 1b1
+        } else if (forward.empty) {
+            tx_data.d = 1b0
         }
         if (rx.new_data && !echo.full) {
             sig ch[8] = rx.data
