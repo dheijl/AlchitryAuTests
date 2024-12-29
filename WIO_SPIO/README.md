@@ -13,7 +13,6 @@ The AU uses the following pins on the Br:
 
 ![20241221_195832](https://github.com/user-attachments/assets/a2b7ce7a-c2fb-4f7d-8c81-f1626e4b6d0d)
 
-
 What does it do:
 
 - you type input characters on the serial terminal in Labs V2
@@ -28,15 +27,15 @@ For the corresponding WIO terminal project source, see [here](https://github.com
 
 Because I didn't know if the SPI 12 MHz limitation was situated at the WIO side, I did the same experiment with a Teensy 4.1 ([source code](https://github.com/dheijl/Teensy_SPI)).
 
-Wiring: 
+Wiring:
+
 - cs = A2 -> Teensy pin 0 (yellow)
 - sck = A5 -> Teensy pin 27 (orange)
 - miso = A9 -> Teensy pin 1 (red)
 - mosi = A6 -> Teensy pin 26 (brown)
 - data_rdy = A8 -> Teensy pin 5 (IN2) (black)
 - GND -> Teensy GND (green)
-- 
+
 ![20241229_180750-EDIT](https://github.com/user-attachments/assets/f7f43510-f85a-43ee-8b5f-6201d4f0a7b9)
 
-
-
+Unfortunately it looks like the speed limitation is on the AU side, as the Teensy fared slightly worse: 24 MHz was totally unusable, only 12 MHz was rock solid. 16 MHz worked but with an occasional bit missed.
