@@ -26,7 +26,7 @@ What does it do:
 For the corresponding WIO terminal project source, see [here](https://github.com/dheijl/wio_spi).
 
 The SPI communication works only reliable up to 12 MHz, while reception on the AU worked at 24 MHz, the WIO missed bits when receiving at speeds > 12 MHz.
-Because I didn't know if the SPI 12 MHz limitation was situated at the WIO side, I did the same experiment with a Teensy 4.1 5 (600 MHz Cortex M7 NXP IMXRT1062DVJ6). 
+Because I didn't know if the SPI 12 MHz limitation was situated at the WIO side, I did the same experiment with a Teensy 4.1 (600 MHz Cortex M7 NXP IMXRT1062DVJ6). 
 See [source code](https://github.com/dheijl/Teensy_SPI).
 
 Wiring:
