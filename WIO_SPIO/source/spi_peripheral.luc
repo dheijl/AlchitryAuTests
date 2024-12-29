@@ -23,6 +23,16 @@
    THE SOFTWARE.
 
    *****************************************************************************/
+/*******************************************************************************
+
+Changes by Danny Heijl (@dheijl), Dec 2024:
+
+- do not waste the first byte of every SPI transmission if you have something
+  meaningful to send
+- ensure that the SDO (also named CIPO or MISO) pin is in high impedance state (1bz)
+  when the AU SPI is not selected (CS HIGH), so that a shared SPI bus is not disturbed.
+
+********************************************************************************/
 
 module spi_peripheral #(
     // clock polarity, 0 = inactive low, 1 = inactive high
