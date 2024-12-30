@@ -40,4 +40,4 @@ Wiring:
 
 ![20241229_180750-EDIT](https://github.com/user-attachments/assets/f7f43510-f85a-43ee-8b5f-6201d4f0a7b9)
 
-Unfortunately it looks like the speed limitation is on the AU side, as the Teensy fared slightly worse: 24 MHz was totally unusable, only 12 MHz was rock solid. 16 MHz worked but with an occasional bit missed.
+Unfortunately it looks like the speed limitation is on the AU side, as the Teensy fared slightly worse: 24 MHz was totally unusable, but up to 16 MHz both directions were OK. Anything above 16 MHz missed bits in both directions. I also use an Ili9341 SPI display on the Teensy at 30 MHz in this test to display results. In theory (with 4 samples per SPI SCK tick) the AU should be able to go up to 25 MHz (1/4 th of the 100 MHz system clock), but 16 MHz "bit-banging" is already respectable.
