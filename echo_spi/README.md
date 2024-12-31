@@ -1,6 +1,6 @@
 # SPI Slave speed test
 
-SPI speed test between tha AU with Br and a Teensy 4.1.
+SPI speed test between the AU with Br and a Teensy 4.1.
 
 
 Wiring:
@@ -9,7 +9,6 @@ Wiring:
 - sck = A5 -> Teensy pin 27 (orange)
 - miso = A9 -> Teensy pin 1 (red)
 - mosi = A6 -> Teensy pin 26 (brown)
-- data_rdy = A8 -> Teensy pin 5 (IN2) (black)
 - GND -> Teensy GND (green)
 
 ![20241229_180750-EDIT](https://github.com/user-attachments/assets/f7f43510-f85a-43ee-8b5f-6201d4f0a7b9)
