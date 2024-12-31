@@ -17,6 +17,10 @@ When [testing SPI](https://github.com/dheijl/AlchitryAuTests/tree/main/WIO_SPIO)
 
 So I did this SPI speedtest with a Teensy 4.1 (600 MHz NXP Cortex M7) to see what would happen. The Teensy sends SPI bursts at increasing speed (starting at 10 MHz), and the AU echos anything it receives in the same SPI transaction, and the Teensy checks if the received data matches the sent data. 
 
-With the Teensy SPI works reliably in both directions up to 17 MHz, anything above misses bits, and send/receive start missing bits at the same speed, contrary to the WIO test.
+With the Teensy SPI works reliably in both directions up to 17 MHz, anything above misses bits, and send/receive start missing bits at the same speed, contrary to the WIO test. In theory the 100 MHz AU  could go up to 25 MHz (with 4 SCK samples per SCK tick), but 17 MHz is not bad for "bit-banging".
+
+I used an Ili9341 display with the Teensy to display test results at 30 MHz SPI without problems.
+
+The Teensy project is [here](https://github.com/dheijl/Teensy_echo).
 
 
