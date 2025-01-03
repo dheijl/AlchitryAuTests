@@ -101,9 +101,8 @@ module spi_peripheral #(
                     done_reg.d = 1   // signal we are done
                     data.d = data_in // copy new data in
                 }
-            } else {//if (sck_reg.q == (b10 ^ 2x{CPOL^CPHA})) { // writing edge
-                // write next bit out early, goes to 21 MHz instead of 17 MHz
-                sdo = data.q[bit_ct.q]
+            } else if (sck_reg.q == (b10 ^ 2x{CPOL^CPHA})) { // writing edge
+                // write a bit out
                 sdo_reg.d = data.q[bit_ct.q]
             }
         }
