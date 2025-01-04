@@ -69,8 +69,7 @@ module alchitry_top (
         }
               
         if (rx.new_data && !echo.full) {
-            sig ch[8] = rx.data
-            echo.din = ch
+            echo.din = rx.data
             echo.wput = 1b1
         } 
         // make sure the first byte is ready when SPI transfer starts
@@ -80,12 +79,11 @@ module alchitry_top (
         } else  {               // SPI active
             if (spi.done) {
                 // echo received characters to SPI
-                sig ch[8] = spi.data_out
-                spi.data_in = ch
-                tx_buf.d = ch
+                tx_buf.d = spi.data_out
+                spi.data_in = tx_buf.q
                 // store received spi char in console echo buffer
                 if (!echo.full) {
-                    echo.din = ch
+                    echo.din = tx_buf.q
                     echo.wput = 1b1
                 }    
             } 

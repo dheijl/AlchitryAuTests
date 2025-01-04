@@ -23,21 +23,11 @@
    THE SOFTWARE.
 
    *****************************************************************************/
-/*******************************************************************************
-
-Changes by Danny Heijl (@dheijl), Dec 2024:
-
-- do not waste the first byte of every SPI transmission if you have something
-  meaningful to send
-- ensure that the SDO (also named CIPO or MISO) pin is in high impedance state (1bz)
-  when the AU SPI is not selected (CS HIGH), so that a shared SPI bus is not disturbed.
-
-********************************************************************************/
 
 module spi_peripheral #(
     // clock polarity, 0 = inactive low, 1 = inactive high
     CPOL = 0 : CPOL == 0 || CPOL == 1,
-    
+
     // clock phase, 0 = valid on leading edge, 1 = valid on trailing edge
     CPHA = 0 : CPHA == 0 || CPHA == 1
 )(
@@ -51,7 +41,7 @@ module spi_peripheral #(
     input data_in[8],   // data to send
     output data_out[8]  // data received
 ) {
-    
+
     .clk(clk) {
         .rst(rst) {
             dff bit_ct[3]    // bit counter
@@ -64,48 +54,47 @@ module spi_peripheral #(
         dff data_out_reg[8]  // data_out buffer
         dff done_reg         // done buffer
     }
-    
+
     always {
         // connect to buffer output
         sdo = sdo_reg.q
         done = done_reg.q
         data_out = data_out_reg.q
-        
+
         // read in buffered inputs
         cs_reg.d = cs
         sdi_reg.d = sdi
         sck_reg.d = c{sck_reg.q[0], sck} // save old sck
-        
+
         done_reg.d = 0 // default to not done
-        data.d = data_in        // copy in data for next byte
-        
+
         if (cs_reg.q) { // not selected
             bit_ct.d = 3b111        // reset counter
-            sdo_reg.d = 1bz          // high impedance
+            data.d = data_in        // copy in data for next byte
+            sdo_reg.d = data_in[7]  // write first bit out
         } else {
             // When CPOL and CPHA are different, we read on the falling edge.
             // When they are the same we read on the rising edge.
             // Therefore we can use XOR to check that and invert the
             // edge detector. If you XOR with 1, the bit is flipped.
-            
+
             if (sck_reg.q == (b01 ^ 2x{CPOL^CPHA})) { // reading edge
-                
+
                 // read in the bit
                 data_out_reg.d[bit_ct.q] = sdi_reg.q
-                
+
                 // increment the bit counter
                 bit_ct.d = bit_ct.q - 1
-                
+
                 // if we read the last bit
-                if (bit_ct.q == 1b0) {
-                    done_reg.d = 1b1   // signal we are done
+                if (bit_ct.q == b0) {
+                    done_reg.d = 1   // signal we are done
                     data.d = data_in // copy new data in
                 }
-            } else if (sck_reg.q == (2b10 ^ 2x{CPOL^CPHA})) { // writing edge
-                // write a bit out
-                sdo_reg.d = data.q[bit_ct.q]
-                sdo = data.q[bit_ct.q]
-            }
+            } else if (sck_reg.q == (b10 ^ 2x{CPOL^CPHA})) { // writing edge
+                    // write a bit out
+                    sdo_reg.d = data.q[bit_ct.q]
+                }
         }
     }
 }

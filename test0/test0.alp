@@ -1,6 +1,6 @@
 {
     "project": {
-        "type": "V1.2",
+        "type": "V1.3",
         "projectName": "test0",
         "board": "Alchitry Au",
         "sourceFiles": [
@@ -92,12 +92,6 @@
             {
                 "file": {
                     "type": "Component",
-                    "path": "Interfaces/spi_peripheral.luc"
-                }
-            },
-            {
-                "file": {
-                    "type": "Component",
                     "path": "Interfaces/i2c_controller.luc"
                 }
             },
@@ -117,6 +111,12 @@
                 "file": {
                     "type": "Component",
                     "path": "Interfaces/uart_tx.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "DiskFile",
+                    "path": "source/spi_peripheral.luc"
                 }
             }
         ],
