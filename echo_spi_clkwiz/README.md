@@ -21,6 +21,10 @@ With the Teensy this SPI code works reliably in both directions up to 23 MHz, an
 
 I used an Ili9341 display with the Teensy to display test results at 30 MHz SPI without problems.
 
+This an experimental version of the same SPI speedtest but with the SPI peripheral code running at 200 MHz using the Clock Wizard.
+
+This way it runs reliably up to 29 MHz.
+
 The Teensy project is [here](https://github.com/dheijl/Teensy_echo).
 
 
