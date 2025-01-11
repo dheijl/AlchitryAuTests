@@ -18,7 +18,7 @@ module spi_echo (
     
     .clk(clk) {
         .rst(rst) {
-            dff done
+            dff done_hold[2]
             dff rx_out[8]
         }
     }
@@ -32,8 +32,6 @@ module spi_echo (
             
         }
         dff tx_buf[8]      // the character to transmit
-        // sync with slow clock
-        dff sync_out[8]
     }
     
     always {
@@ -41,25 +39,30 @@ module spi_echo (
         // connect spi
         sdo = spi.sdo
         data_out = rx_out.q
-        data_rdy = done.q
+        if (done_hold.q > 0) {
+            data_rdy = 1b1
+            done_hold.d = done_hold.q - 1b0
+        } else {
+            data_rdy = 1b0
+        }
         
         // 
         data_out = rx_out.q
-       // make sure the first byte is ready when SPI transfer starts
+        // make sure the first byte is ready when SPI transfer starts
         spi.data_in = tx_buf.q
         if (cs == 1b1) {        // SPI idle
             tx_buf.d = 8hff
+            done_hold.d = 2b00
         } else  {               // SPI active
-            done.d = 1b0
             if (spi.done) {
-                // echo received characters to SPI
+                // echo received character to SPI
                 tx_buf.d = spi.data_out
                 spi.data_in = tx_buf.q
-                // output received spi char on slow clock
-                sync_out.d = tx_buf.q
-                rx_out.d = sync_out.q
+                // and also output rx spi char on slow clock
+                rx_out.d = tx_buf.q
                 data_out = rx_out.q
-                done.d = 1b1
+                data_rdy = 1b1
+                done_hold.d = 2b10
             } 
         } 
     }
