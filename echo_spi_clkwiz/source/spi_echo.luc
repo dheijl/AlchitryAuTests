@@ -1,0 +1,66 @@
+module spi_echo (
+    input clk,    // 100 MHz clock
+    input fst_clk, // 200 MHz clock
+    input rst,  // reset
+    input sck,     // spi clock
+    input sdi,     // spi mosi
+    input cs,       // spi slave select
+    output sdo,    // spi miso
+    output data_out[8], // received spi data  
+    output data_rdy,   // spi data ready
+) {
+    /*
+    SPI Mode 0 = CPOL 0 CPHA 0
+    SPI Mode 1 = CPOL 0 CPHA 1
+    SPI Mode 2 = CPOL 1 CPHA 0
+    SPI Mode 3 = CPOL 1 CPHA 1
+    */    
+    
+    .clk(clk) {
+        .rst(rst) {
+            dff done
+            dff rx_out[8]
+        }
+    }
+    
+    .clk(fst_clk) {
+        .rst(rst) {
+            spi_peripheral spi (#CPOL(0), #CPHA(1), 
+                .cs(cs), 
+                .sck(sck), 
+                .sdi(sdi))
+            
+        }
+        dff tx_buf[8]      // the character to transmit
+        // sync with slow clock
+        dff sync_out[8]
+    }
+    
+    always {
+        
+        // connect spi
+        sdo = spi.sdo
+        data_out = rx_out.q
+        data_rdy = done.q
+        
+        // 
+        data_out = rx_out.q
+       // make sure the first byte is ready when SPI transfer starts
+        spi.data_in = tx_buf.q
+        if (cs == 1b1) {        // SPI idle
+            tx_buf.d = 8hff
+        } else  {               // SPI active
+            done.d = 1b0
+            if (spi.done) {
+                // echo received characters to SPI
+                tx_buf.d = spi.data_out
+                spi.data_in = tx_buf.q
+                // output received spi char on slow clock
+                sync_out.d = tx_buf.q
+                rx_out.d = sync_out.q
+                data_out = rx_out.q
+                done.d = 1b1
+            } 
+        } 
+    }
+}
