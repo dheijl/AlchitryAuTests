@@ -55,6 +55,8 @@ module spi_echo (
         fifo_out.rget = data_rget
         data_out = fifo_out.dout
 
+        data_empty = 1b1
+        
         // make sure the first byte is ready when SPI transfer starts
         spi.data_in = tx_buf.q
 
@@ -65,8 +67,11 @@ module spi_echo (
                 //fifo_out.din = tx_buf.q
                 //fifo_out.wput = 1b1
             }
+            // and this looses characters
+            data_empty = 1b0
+            data_out = tx_buf.q
             have_output.d = 1b0
-        }
+        } 
         
         if (cs == 1b1) {        // SPI idle
             tx_buf.d = 8hff
