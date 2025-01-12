@@ -31,13 +31,10 @@ module alchitry_top (
         .rst(rst),
         .sck(sck),
         .sdi(sdi),
-         .cs(cs)
+        .cs(cs)
     ) 
-   
     
-    //pipeline sync_sdo (.clk(clkwiz.clk_out2), .in(spi.sdo))
     
-    //pipeline sync_data_out[8] (.clk(8x{clkwiz.clk_out2}), .in(spi.data_out))
     
     always {
         reset_cond.in = ~rst_n  // input raw inverted reset signal
@@ -51,9 +48,9 @@ module alchitry_top (
         rx.rx = usb_rx
         usb_tx = tx.tx
         
-         
+        
         // init echo fifo
-        echo.din = 1b0
+        echo.din = 8h00
         echo.wput = 1b0
         echo.rget = 1b0
         
@@ -61,21 +58,23 @@ module alchitry_top (
         led[0] = echo.empty
         led[1] = echo.full
         led[2] = 1b0 
-        led[3] = 1b0 
-        led[7] = ~cs
-        led[6] = sck
-        led[5] = 1b0 
+        led[3] = 1b0  
         led[4] = 1b0
+        led[5] = 1b0 
+        led[6] = sck
+        led[7] = ~cs
         
-        if (spiecho.data_rdy && ! echo.full) {
+        spiecho.data_rget = 0
+        if (!spiecho.data_empty && !echo.full) {
             echo.din = spiecho.data_out
             echo.wput = 1b1
+            spiecho.data_rget = 1b1
         }
         // echo eceived characters (spi or console) to console
-        if (! echo.empty && !tx.busy ) {
-            echo.rget = 1b1
+        if (!echo.empty && !tx.busy ) {
             tx.data = echo.dout 
             tx.new_data = 1b1
+            echo.rget = 1b1
         } else {
             tx.data = 1b0
             tx.new_data = 1b0
@@ -85,5 +84,5 @@ module alchitry_top (
             echo.din = rx.data
             echo.wput = 1b1
         } 
-     }    
+    }    
 }

@@ -7,7 +7,8 @@ module spi_echo (
     input cs,       // spi slave select
     output sdo,    // spi miso
     output data_out[8], // received spi data  
-    output data_rdy,   // spi data ready
+    input data_rget,   // spi data ready
+    output data_empty,  // spi fifo empty
 ) {
     /*
     SPI Mode 0 = CPOL 0 CPHA 0
@@ -18,8 +19,6 @@ module spi_echo (
     
     .clk(clk) {
         .rst(rst) {
-            dff done
-            dff rx_out[8]
         }
     }
     
@@ -32,34 +31,51 @@ module spi_echo (
             
         }
         dff tx_buf[8]      // the character to transmit
-        // sync with slow clock
-        dff sync_out[8]
+        dff have_output
     }
+    
+    async_fifo fifo_out(#WIDTH(8), #ENTRIES(256),
+        .wclk(fst_clk),
+        .wrst(rst),
+        .rclk(clk),
+        .rrst(rst)
+    )
     
     always {
         
         // connect spi
         sdo = spi.sdo
-        data_out = rx_out.q
-        data_rdy = done.q
         
-        // 
-        data_out = rx_out.q
-       // make sure the first byte is ready when SPI transfer starts
+        // initialize output fifo
+        fifo_out.wput = 1b0
+        fifo_out.din = 8h00
+        
+        // connect output fifo
+        data_empty = fifo_out.empty
+        fifo_out.rget = data_rget
+        data_out = fifo_out.dout
+
+        // make sure the first byte is ready when SPI transfer starts
         spi.data_in = tx_buf.q
+
+        // store any received spi char in output fifo
+        if (have_output.q) {
+            if (!fifo_out.full) {
+                fifo_out.din = tx_buf.q
+                fifo_out.wput = 1b1
+            }
+            have_output.d = 1b0
+        }
+        
         if (cs == 1b1) {        // SPI idle
             tx_buf.d = 8hff
         } else  {               // SPI active
-            done.d = 1b0
             if (spi.done) {
                 // echo received characters to SPI
                 tx_buf.d = spi.data_out
                 spi.data_in = tx_buf.q
-                // output received spi char on slow clock
-                sync_out.d = tx_buf.q
-                rx_out.d = sync_out.q
-                data_out = rx_out.q
-                done.d = 1b1
+                // output received spi char to the fifo
+                have_output.d = 1b1
             } 
         } 
     }
