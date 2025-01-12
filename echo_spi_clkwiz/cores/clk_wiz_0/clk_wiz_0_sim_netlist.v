@@ -2,10 +2,10 @@
 // Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
 // --------------------------------------------------------------------------------
 // Tool Version: Vivado v.2024.1 (lin64) Build 5076996 Wed May 22 18:36:09 MDT 2024
-// Date        : Sun Jan 12 17:20:37 2025
+// Date        : Mon Jan  6 15:49:44 2025
 // Host        : DannysLMDE running 64-bit LMDE 6 (faye)
-// Command     : write_verilog -force -mode funcsim
-//               /home/danny/alchitry/echo_spi_clkwiz/cores/clk_wiz_0/clk_wiz_0_sim_netlist.v
+// Command     : write_verilog -force -mode funcsim -rename_top clk_wiz_0 -prefix
+//               clk_wiz_0_ clk_wiz_0_sim_netlist.v
 // Design      : clk_wiz_0
 // Purpose     : This verilog netlist is a functional simulation representation of the design and should not be modified
 //               or synthesized. This netlist cannot be used for SDF annotated simulation.
@@ -32,7 +32,7 @@ module clk_wiz_0
   wire locked;
   wire reset;
 
-  clk_wiz_0_clk_wiz inst
+  clk_wiz_0_clk_wiz_0_clk_wiz inst
        (.clk_in1(clk_in1),
         .clk_out1(clk_out1),
         .clk_out2(clk_out2),
@@ -40,7 +40,7 @@ module clk_wiz_0
         .reset(reset));
 endmodule
 
-module clk_wiz_0_clk_wiz
+module clk_wiz_0_clk_wiz_0_clk_wiz
    (clk_out1,
     clk_out2,
     reset,
@@ -102,16 +102,16 @@ module clk_wiz_0_clk_wiz
   (* BOX_TYPE = "PRIMITIVE" *) 
   MMCME2_ADV #(
     .BANDWIDTH("OPTIMIZED"),
-    .CLKFBOUT_MULT_F(9.000000),
+    .CLKFBOUT_MULT_F(10.000000),
     .CLKFBOUT_PHASE(0.000000),
     .CLKFBOUT_USE_FINE_PS("FALSE"),
     .CLKIN1_PERIOD(10.000000),
     .CLKIN2_PERIOD(0.000000),
-    .CLKOUT0_DIVIDE_F(9.000000),
+    .CLKOUT0_DIVIDE_F(10.000000),
     .CLKOUT0_DUTY_CYCLE(0.500000),
     .CLKOUT0_PHASE(0.000000),
     .CLKOUT0_USE_FINE_PS("FALSE"),
-    .CLKOUT1_DIVIDE(3),
+    .CLKOUT1_DIVIDE(5),
     .CLKOUT1_DUTY_CYCLE(0.500000),
     .CLKOUT1_PHASE(0.000000),
     .CLKOUT1_USE_FINE_PS("FALSE"),

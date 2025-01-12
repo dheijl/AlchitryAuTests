@@ -2,10 +2,10 @@
 -- Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
 -- --------------------------------------------------------------------------------
 -- Tool Version: Vivado v.2024.1 (lin64) Build 5076996 Wed May 22 18:36:09 MDT 2024
--- Date        : Sun Jan 12 17:20:37 2025
+-- Date        : Mon Jan  6 15:49:44 2025
 -- Host        : DannysLMDE running 64-bit LMDE 6 (faye)
--- Command     : write_vhdl -force -mode funcsim
---               /home/danny/alchitry/echo_spi_clkwiz/cores/clk_wiz_0/clk_wiz_0_sim_netlist.vhdl
+-- Command     : write_vhdl -force -mode funcsim -rename_top clk_wiz_0 -prefix
+--               clk_wiz_0_ clk_wiz_0_sim_netlist.vhdl
 -- Design      : clk_wiz_0
 -- Purpose     : This VHDL netlist is a functional simulation representation of the design and should not be modified or
 --               synthesized. This netlist cannot be used for SDF annotated simulation.
@@ -15,7 +15,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity clk_wiz_0_clk_wiz is
+entity clk_wiz_0_clk_wiz_0_clk_wiz is
   port (
     clk_out1 : out STD_LOGIC;
     clk_out2 : out STD_LOGIC;
@@ -23,9 +23,9 @@ entity clk_wiz_0_clk_wiz is
     locked : out STD_LOGIC;
     clk_in1 : in STD_LOGIC
   );
-end clk_wiz_0_clk_wiz;
+end clk_wiz_0_clk_wiz_0_clk_wiz;
 
-architecture STRUCTURE of clk_wiz_0_clk_wiz is
+architecture STRUCTURE of clk_wiz_0_clk_wiz_0_clk_wiz is
   signal clk_in1_clk_wiz_0 : STD_LOGIC;
   signal clk_out1_clk_wiz_0 : STD_LOGIC;
   signal clk_out2_clk_wiz_0 : STD_LOGIC;
@@ -85,16 +85,16 @@ clkout2_buf: unisim.vcomponents.BUFG
 mmcm_adv_inst: unisim.vcomponents.MMCME2_ADV
     generic map(
       BANDWIDTH => "OPTIMIZED",
-      CLKFBOUT_MULT_F => 9.000000,
+      CLKFBOUT_MULT_F => 10.000000,
       CLKFBOUT_PHASE => 0.000000,
       CLKFBOUT_USE_FINE_PS => false,
       CLKIN1_PERIOD => 10.000000,
       CLKIN2_PERIOD => 0.000000,
-      CLKOUT0_DIVIDE_F => 9.000000,
+      CLKOUT0_DIVIDE_F => 10.000000,
       CLKOUT0_DUTY_CYCLE => 0.500000,
       CLKOUT0_PHASE => 0.000000,
       CLKOUT0_USE_FINE_PS => false,
-      CLKOUT1_DIVIDE => 3,
+      CLKOUT1_DIVIDE => 5,
       CLKOUT1_DUTY_CYCLE => 0.500000,
       CLKOUT1_PHASE => 0.000000,
       CLKOUT1_USE_FINE_PS => false,
@@ -187,7 +187,7 @@ end clk_wiz_0;
 
 architecture STRUCTURE of clk_wiz_0 is
 begin
-inst: entity work.clk_wiz_0_clk_wiz
+inst: entity work.clk_wiz_0_clk_wiz_0_clk_wiz
      port map (
       clk_in1 => clk_in1,
       clk_out1 => clk_out1,
