@@ -1,6 +1,7 @@
 module spi_echo (
-    input clk,    // 100 MHz clock
+    input clk,    // 200 MHz clock
     input fst_clk, // 200 MHz clock
+    input slw_clk, // 100 MHz clock
     input rst,  // reset
     input sck,     // spi clock
     input sdi,     // spi mosi
@@ -37,7 +38,7 @@ module spi_echo (
     async_fifo fifo_out(#WIDTH(8), #ENTRIES(256),
         .wclk(fst_clk),
         .wrst(rst),
-        .rclk(clk),
+        .rclk(slw_clk),
         .rrst(rst)
     )
     
@@ -63,10 +64,10 @@ module spi_echo (
         // store any received spi char in output fifo
         if (have_output.q) {
             // this takes too long and makes SPI miss clock cycles
-            if (!fifo_out.full) {
-                //fifo_out.din = tx_buf.q
-                //fifo_out.wput = 1b1
-            }
+            //*if (!fifo_out.full) {
+            //*    fifo_out.din = tx_buf.q
+            //*    fifo_out.wput = 1b1
+            //*}
             // and this looses characters
             data_empty = 1b0
             data_out = tx_buf.q

@@ -21,7 +21,7 @@ else
 fi
 export LD_LIBRARY_PATH
 
-HD_PWD='/home/danny/alchitry/echo_spi/cores/managed_ip_project/managed_ip_project.runs/clk_wiz_0_synth_1'
+HD_PWD='/home/danny/alchitry/echo_spi_clkwiz/cores/managed_ip_project/managed_ip_project.runs/clk_wiz_0_synth_1'
 cd "$HD_PWD"
 
 HD_LOG=runme.log

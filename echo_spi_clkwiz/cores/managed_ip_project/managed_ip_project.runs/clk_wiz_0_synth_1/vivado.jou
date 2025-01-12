@@ -3,22 +3,22 @@
 # SW Build 5076996 on Wed May 22 18:36:09 MDT 2024
 # IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
 # SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
-# Start of session at: Mon Jan  6 15:49:26 2025
-# Process ID: 3955
-# Current directory: /home/danny/alchitry/echo_spi/cores/managed_ip_project/managed_ip_project.runs/clk_wiz_0_synth_1
+# Start of session at: Sun Jan 12 17:20:19 2025
+# Process ID: 57535
+# Current directory: /home/danny/alchitry/echo_spi_clkwiz/cores/managed_ip_project/managed_ip_project.runs/clk_wiz_0_synth_1
 # Command line: vivado -log clk_wiz_0.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source clk_wiz_0.tcl
-# Log file: /home/danny/alchitry/echo_spi/cores/managed_ip_project/managed_ip_project.runs/clk_wiz_0_synth_1/clk_wiz_0.vds
-# Journal file: /home/danny/alchitry/echo_spi/cores/managed_ip_project/managed_ip_project.runs/clk_wiz_0_synth_1/vivado.jou
+# Log file: /home/danny/alchitry/echo_spi_clkwiz/cores/managed_ip_project/managed_ip_project.runs/clk_wiz_0_synth_1/clk_wiz_0.vds
+# Journal file: /home/danny/alchitry/echo_spi_clkwiz/cores/managed_ip_project/managed_ip_project.runs/clk_wiz_0_synth_1/vivado.jou
 # Running On        :DannysLMDE
 # Platform          :Linuxmint
 # Operating System  :LMDE 6 (faye)
 # Processor Detail  :AMD Ryzen 7 7800X3D 8-Core Processor
-# CPU Frequency     :3704.234 MHz
+# CPU Frequency     :3234.782 MHz
 # CPU Physical cores:8
 # CPU Logical cores :16
 # Host memory       :32710 MB
 # Swap memory       :0 MB
 # Total Virtual     :32710 MB
-# Available Virtual :29200 MB
+# Available Virtual :28919 MB
 #-----------------------------------------------------------
 source clk_wiz_0.tcl -notrace

@@ -2,9 +2,10 @@
 -- Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
 -- --------------------------------------------------------------------------------
 -- Tool Version: Vivado v.2024.1 (lin64) Build 5076996 Wed May 22 18:36:09 MDT 2024
--- Date        : Mon Jan  6 15:49:44 2025
+-- Date        : Sun Jan 12 17:20:37 2025
 -- Host        : DannysLMDE running 64-bit LMDE 6 (faye)
--- Command     : write_vhdl -force -mode synth_stub /home/danny/alchitry/echo_spi/cores/clk_wiz_0/clk_wiz_0_stub.vhdl
+-- Command     : write_vhdl -force -mode synth_stub
+--               /home/danny/alchitry/echo_spi_clkwiz/cores/clk_wiz_0/clk_wiz_0_stub.vhdl
 -- Design      : clk_wiz_0
 -- Purpose     : Stub declaration of top-level module interface
 -- Device      : xc7a35tftg256-1

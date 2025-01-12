@@ -26,8 +26,9 @@ module alchitry_top (
     clk_wiz_0 clkwiz(.clk_in1(clk), .reset(rst))
     
     spi_echo spiecho(
-        .clk(clk),
+        .clk(clkwiz.clk_out2),
         .fst_clk(clkwiz.clk_out2),
+        .slw_clk(clk),
         .rst(rst),
         .sck(sck),
         .sdi(sdi),
