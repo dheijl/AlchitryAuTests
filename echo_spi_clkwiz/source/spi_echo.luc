@@ -60,9 +60,10 @@ module spi_echo (
 
         // store any received spi char in output fifo
         if (have_output.q) {
+            // this takes too long and makes SPI miss clock cycles
             if (!fifo_out.full) {
-                fifo_out.din = tx_buf.q
-                fifo_out.wput = 1b1
+                //fifo_out.din = tx_buf.q
+                //fifo_out.wput = 1b1
             }
             have_output.d = 1b0
         }
