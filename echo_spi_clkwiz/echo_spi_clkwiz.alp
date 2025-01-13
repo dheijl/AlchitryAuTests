@@ -52,12 +52,6 @@
                     "type": "DiskFile",
                     "path": "source/spi_echo.luc"
                 }
-            },
-            {
-                "file": {
-                    "type": "Component",
-                    "path": "Memory/async_fifo.luc"
-                }
             }
         ],
         "constraintFiles": [

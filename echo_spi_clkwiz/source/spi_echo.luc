@@ -1,15 +1,13 @@
 module spi_echo (
     input clk,    // 200 MHz clock
     input fst_clk, // 200 MHz clock
-    input slw_clk, // 100 MHz clock
     input rst,  // reset
     input sck,     // spi clock
     input sdi,     // spi mosi
     input cs,       // spi slave select
     output sdo,    // spi miso
     output data_out[8], // received spi data  
-    input data_rget,   // spi data ready
-    output data_empty,  // spi fifo empty
+    output data_rdy,  // spi fifo empty
 ) {
     /*
     SPI Mode 0 = CPOL 0 CPHA 0
@@ -30,17 +28,15 @@ module spi_echo (
                 .sck(sck), 
                 .sdi(sdi))
             
+            fifo fifo_out(#WIDTH(8), #ENTRIES(256))
         }
         dff tx_buf[8]      // the character to transmit
+        dff out_buf[8]     // the received SPI character
+        dff rdy            // the SPI char ready flag
         dff have_output
+        dff clock_syncer[2]
     }
     
-    async_fifo fifo_out(#WIDTH(8), #ENTRIES(256),
-        .wclk(fst_clk),
-        .wrst(rst),
-        .rclk(slw_clk),
-        .rrst(rst)
-    )
     
     always {
         
@@ -50,28 +46,37 @@ module spi_echo (
         // initialize output fifo
         fifo_out.wput = 1b0
         fifo_out.din = 8h00
+        fifo_out.rget = 1b0
         
-        // connect output fifo
-        data_empty = fifo_out.empty
-        fifo_out.rget = data_rget
-        data_out = fifo_out.dout
-
-        data_empty = 1b1
+        // drive outputs
+        data_out = out_buf.q
+        data_rdy = rdy.q
         
         // make sure the first byte is ready when SPI transfer starts
         spi.data_in = tx_buf.q
-
+        
+        // sync the 200 MHz fifo with the 100 MHz output
+        clock_syncer.d = clock_syncer.q + 1
+        if (clock_syncer.q == 2b01) {
+            if (! fifo_out.empty) {
+                data_out = fifo_out.dout
+                out_buf.d = fifo_out.dout
+                data_rdy = 1b1
+                rdy.d = 1b1
+                fifo_out.rget = 1b1
+                clock_syncer.d = 2b00
+            }
+        } else {
+            rdy.d = 1b0
+        }
+        
         // store any received spi char in output fifo
         if (have_output.q) {
-            // this takes too long and makes SPI miss clock cycles
-            //*if (!fifo_out.full) {
-            //*    fifo_out.din = tx_buf.q
-            //*    fifo_out.wput = 1b1
-            //*}
-            // and this looses characters
-            data_empty = 1b0
-            data_out = tx_buf.q
-            have_output.d = 1b0
+            if (!fifo_out.full) {
+                fifo_out.din = tx_buf.q
+                fifo_out.wput = 1b1
+                have_output.d = 1b0
+            }
         } 
         
         if (cs == 1b1) {        // SPI idle

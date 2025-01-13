@@ -28,7 +28,6 @@ module alchitry_top (
     spi_echo spiecho(
         .clk(clkwiz.clk_out2),
         .fst_clk(clkwiz.clk_out2),
-        .slw_clk(clk),
         .rst(rst),
         .sck(sck),
         .sdi(sdi),
@@ -65,11 +64,9 @@ module alchitry_top (
         led[6] = sck
         led[7] = ~cs
         
-        spiecho.data_rget = 0
-        if (!spiecho.data_empty && !echo.full) {
+        if (spiecho.data_rdy && !echo.full) {
             echo.din = spiecho.data_out
             echo.wput = 1b1
-            spiecho.data_rget = 1b1
         }
         // echo eceived characters (spi or console) to console
         if (!echo.empty && !tx.busy ) {
