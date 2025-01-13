@@ -1,5 +1,5 @@
 module spi_echo (
-    input clk,    // 200 MHz clock
+    input clk,    // 100 MHz clock
     input fst_clk, // 200 MHz clock
     input rst,  // reset
     input sck,     // spi clock
