@@ -1,5 +1,4 @@
 module spi_echo (
-    input clk,    // 100 MHz clock
     input fst_clk, // 200 MHz clock
     input rst,  // reset
     input sck,     // spi clock
@@ -15,12 +14,7 @@ module spi_echo (
     SPI Mode 2 = CPOL 1 CPHA 0
     SPI Mode 3 = CPOL 1 CPHA 1
     */    
-    
-    .clk(clk) {
-        .rst(rst) {
-        }
-    }
-    
+       
     .clk(fst_clk) {
         .rst(rst) {
             spi_peripheral spi (#CPOL(0), #CPHA(1), 
