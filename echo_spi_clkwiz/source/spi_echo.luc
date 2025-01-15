@@ -59,9 +59,7 @@ module spi_echo (
         clock_syncer.d = clock_syncer.q + 1
         if (clock_syncer.q == 2b01) {
             if (! fifo_out.empty) {
-                data_out = fifo_out.dout
                 out_buf.d = fifo_out.dout
-                data_rdy = 1b1
                 rdy.d = 1b1
                 fifo_out.rget = 1b1
                 clock_syncer.d = 2b00
