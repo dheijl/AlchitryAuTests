@@ -84,7 +84,6 @@ module spi_echo (
                 // echo received characters to SPI
                 tx_buf.d = spi.data_out
                 spi.data_in = tx_buf.q
-                //spi.data_in = spi.data_out
                 // output received spi char to the fifo
                 have_output.d = 1b1
             } 
