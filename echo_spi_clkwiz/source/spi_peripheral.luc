@@ -61,6 +61,7 @@ module spi_peripheral #(
         dff sdo_reg          // output buffer
         dff sck_reg[2]       // sck buffer
         dff cs_reg           // cs buffer
+        dff data_in_reg[8]   // data_in buffer 
         dff data_out_reg[8]  // data_out buffer
         dff done_reg         // done buffer
     }
@@ -75,6 +76,7 @@ module spi_peripheral #(
         cs_reg.d = cs
         sdi_reg.d = sdi
         sck_reg.d = c{sck_reg.q[0], sck} // save old sck
+        data_in_reg.d = data_in
         
         done_reg.d = 0 // default to not done
         data.d = data_in        // copy in data for next byte
@@ -99,7 +101,7 @@ module spi_peripheral #(
                 // if we read the last bit
                 if (bit_ct.q == 1b0) {
                     done_reg.d = 1b1   // signal we are done
-                    data.d = data_in // copy new data in
+                    data.d = data_in_reg.q // copy new data in
                 }
             } else if (sck_reg.q == (2b10 ^ 2x{CPOL^CPHA})) { // writing edge
                 // write a bit out
