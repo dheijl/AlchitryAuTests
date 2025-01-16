@@ -29,6 +29,7 @@ module spi_echo (
         dff rdy            // the SPI char ready flag
         dff have_output
         dff clock_syncer[2]
+        dff cs_reg
     }
     
     
@@ -36,6 +37,7 @@ module spi_echo (
         
         // connect spi
         sdo = spi.sdo
+        cs_reg.d = cs
         
         // initialize output fifo
         fifo_out.wput = 1b0
@@ -71,7 +73,7 @@ module spi_echo (
             }
         } 
         
-        if (cs == 1b1) {        // SPI idle
+        if (cs_reg.q == 1b1) {        // SPI idle
             tx_buf.d = 8hff
         } else  {               // SPI active
             if (spi.done) {
