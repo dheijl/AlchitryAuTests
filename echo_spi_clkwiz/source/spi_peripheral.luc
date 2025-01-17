@@ -32,6 +32,14 @@ Changes by Danny Heijl (@dheijl), Dec 2024:
 - ensure that the SDO (also named CIPO or MISO) pin is in high impedance state (1bz)
   when the AU SPI is not selected (CS HIGH), so that a shared SPI bus is not disturbed.
 
+This is what you can expect with a 200 MHz clock (from the clock wizard):
+
+    - Mode 0 and Mode 2: 26 MHz
+    - Mode 1 and Mode 3: 29 MHz
+
+With a 100 MHz clock 23 MHz seems to be the limit.
+ 
+
 ********************************************************************************/
 
 module spi_peripheral #(
