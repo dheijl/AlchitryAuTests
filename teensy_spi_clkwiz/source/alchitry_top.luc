@@ -26,7 +26,7 @@ module alchitry_top (
     
     clk_wiz_0 clkwiz(.clk_in1(clk), .reset(rst))
     
-    spi_echo spiecho(
+    spi_buffer spibuffer(
         .fst_clk(clkwiz.clk_out2),
         .rst(rst),
         .sck(sck),
@@ -41,7 +41,7 @@ module alchitry_top (
         rst = reset_cond.out    // conditioned reset
         
         // connect spi
-        sdo = spiecho.sdo
+        sdo = spibuffer.sdo
         drq = 1b0
         
         // connect usb
@@ -55,6 +55,10 @@ module alchitry_top (
         echo.wput = 1b0
         echo.rget = 1b0
         
+        // init spibuffer
+        spibuffer.data_in = 8h0
+        spibuffer.data_in_newdata = 1b0
+        
         // leds
         led[0] = echo.empty
         led[1] = echo.full
@@ -65,8 +69,8 @@ module alchitry_top (
         led[6] = sck
         led[7] = ~cs
         
-        if (spiecho.data_rdy && !echo.full) {
-            echo.din = spiecho.data_out
+        if (spibuffer.data_rdy && !echo.full) {
+            echo.din = spibuffer.data_out
             echo.wput = 1b1
         }
         // echo eceived characters (spi or console) to console
@@ -82,6 +86,10 @@ module alchitry_top (
         if (rx.new_data && !echo.full) {
             echo.din = rx.data
             echo.wput = 1b1
+            if (! spibuffer.data_in_full) {
+                spibuffer.data_in = rx.data
+                spibuffer.data_in_newdata = 1b1
+            }
         } 
     }    
 }

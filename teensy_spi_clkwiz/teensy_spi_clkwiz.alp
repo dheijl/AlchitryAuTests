@@ -50,12 +50,6 @@
             {
                 "file": {
                     "type": "DiskFile",
-                    "path": "source/spi_echo.luc"
-                }
-            },
-            {
-                "file": {
-                    "type": "DiskFile",
                     "path": "source/spi_buffer.luc"
                 }
             }

@@ -5,7 +5,8 @@ module spi_buffer (
     input sdi,     // spi mosi
     input cs,      // spi slave select
     input data_in[8], // data to transmit for fifo_in
-    output data_in_rdy, // spave available in fifo_in
+    input data_in_newdata, // new data available
+    output data_in_full, // space available in fifo_in
     output sdo,    // spi miso
     output data_out[8], // received spi data from fifo_out 
     output data_rdy  // spi rcv fifo not empty
@@ -33,6 +34,7 @@ module spi_buffer (
         dff have_output
         dff clock_syncer[2]
         dff cs_reg
+        dff data_in_reg[8]
     }
     
     
@@ -55,9 +57,14 @@ module spi_buffer (
         // drive outputs
         data_out = out_buf.q
         data_rdy = rdy.q
-        data_in_rdy =  ~fifo_in.empty
+        data_in_full =  fifo_in.full
         
         // make sure the first byte is ready when SPI transfer starts
+        data_in_reg.d = data_in
+        if (! fifo_in.empty) {
+            tx_buf.d = fifo_in.dout
+            fifo_in.rget = 1b1
+        }
         spi.data_in = tx_buf.q
         
         // sync the 200 MHz fifo with the 100 MHz output
@@ -66,8 +73,12 @@ module spi_buffer (
                 out_buf.d = fifo_out.dout
                 rdy.d = 1b1
                 fifo_out.rget = 1b1
-                clock_syncer.d = 2b00
             }
+            if (! fifo_in.full && data_in_newdata) {
+                fifo_in.din = data_in_reg.q
+                fifo_in.wput = 1b1
+            }
+            clock_syncer.d = 2b00
         } else {
             rdy.d = 1b0
         }
