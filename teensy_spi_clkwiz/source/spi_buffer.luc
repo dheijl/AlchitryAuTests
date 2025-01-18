@@ -1,9 +1,11 @@
-module spi_echo (
+module spi_buffer (
     input fst_clk, // 200 MHz clock
     input rst,  // reset
     input sck,     // spi clock
     input sdi,     // spi mosi
-    input cs,       // spi slave select
+    input cs,      // spi slave select
+    input data_in[8], // data to transmit for fifo_in
+    output data_in_rdy, // spave available in fifo_in
     output sdo,    // spi miso
     output data_out[8], // received spi data from fifo_out 
     output data_rdy  // spi rcv fifo not empty
@@ -23,6 +25,7 @@ module spi_echo (
                 .sdi(sdi))
             
             fifo fifo_out(#WIDTH(8), #ENTRIES(256))
+            fifo fifo_in(#WIDTH(8), #ENTRIES(256))
         }
         dff tx_buf[8]      // the character to transmit
         dff out_buf[8]     // the received SPI character
@@ -44,9 +47,15 @@ module spi_echo (
         fifo_out.din = 8h00
         fifo_out.rget = 1b0
         
+        // initialize input fifo
+        fifo_in.wput = 1b0
+        fifo_in.din = 8h00
+        fifo_in.rget = 1b0
+        
         // drive outputs
         data_out = out_buf.q
         data_rdy = rdy.q
+        data_in_rdy =  ~fifo_in.empty
         
         // make sure the first byte is ready when SPI transfer starts
         spi.data_in = tx_buf.q
