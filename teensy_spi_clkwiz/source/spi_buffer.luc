@@ -1,4 +1,5 @@
-module spi_buffer (
+module spi_buffer #(BUFFER_SIZE = 256)
+(
     input fst_clk, // 200 MHz clock
     input rst,  // reset
     input sck,     // spi clock
@@ -9,7 +10,8 @@ module spi_buffer (
     output data_in_full, // space available in fifo_in
     output sdo,    // spi miso
     output data_out[8], // received spi data from fifo_out 
-    output data_rdy  // spi rcv fifo not empty
+    output data_rdy,  // spi rcv fifo not empty
+    output drq        // request SPI transfer
 ) {
     /*
     SPI Mode 0 = CPOL 0 CPHA 0
@@ -17,7 +19,7 @@ module spi_buffer (
     SPI Mode 2 = CPOL 1 CPHA 0
     SPI Mode 3 = CPOL 1 CPHA 1
     */    
-       
+    
     .clk(fst_clk) {
         .rst(rst) {
             spi_peripheral spi (#CPOL(0), #CPHA(1), 
@@ -25,16 +27,20 @@ module spi_buffer (
                 .sck(sck), 
                 .sdi(sdi))
             
-            fifo fifo_out(#WIDTH(8), #ENTRIES(256))
-            fifo fifo_in(#WIDTH(8), #ENTRIES(256))
+            fifo fifo_out(#WIDTH(8), #ENTRIES(BUFFER_SIZE)) // SPI data received 
+            fifo fifo_in(#WIDTH(8), #ENTRIES(BUFFER_SIZE))  // data to transmit
         }
-        dff tx_buf[8]      // the character to transmit
-        dff out_buf[8]     // the received SPI character
+        dff tx_buf[8]      // the SPI character to transmit
+        dff rx_buf[8]      // the received SPI character
         dff rdy            // the SPI char ready flag
         dff have_output
+        dff have_input
         dff clock_syncer[2]
         dff cs_reg
         dff data_in_reg[8]
+        dff data_out_reg[8]
+        dff drq_reg
+        dff new_data_reg
     }
     
     
@@ -55,28 +61,39 @@ module spi_buffer (
         fifo_in.rget = 1b0
         
         // drive outputs
-        data_out = out_buf.q
+        data_out = data_out_reg.q
         data_rdy = rdy.q
         data_in_full =  fifo_in.full
+        drq = drq_reg.q
+        // inputs
+        new_data_reg.d = data_in_newdata
+        data_in_reg.d = data_in
         
         // make sure the first byte is ready when SPI transfer starts
-        data_in_reg.d = data_in
-        if (! fifo_in.empty) {
+        if (! have_input.q && ! fifo_in.empty) {
             tx_buf.d = fifo_in.dout
             fifo_in.rget = 1b1
+            have_input.d = 1b1
+        } 
+        if (fifo_in.empty) {
+            drq_reg.d = 1b0
         }
         spi.data_in = tx_buf.q
         
         // sync the 200 MHz fifo with the 100 MHz output
         if (clock_syncer.q == 2b01) {
             if (! fifo_out.empty) {
-                out_buf.d = fifo_out.dout
+                data_out_reg.d = fifo_out.dout
                 rdy.d = 1b1
                 fifo_out.rget = 1b1
             }
-            if (! fifo_in.full && data_in_newdata) {
+            if (! fifo_in.full && new_data_reg.q) {
                 fifo_in.din = data_in_reg.q
                 fifo_in.wput = 1b1
+                // trigger SPI transmission on newline or buffer full
+                if ((data_in_reg.q == 8h0a) || (fifo_in.full)) {
+                    drq_reg.d = 1b1
+                }
             }
             clock_syncer.d = 2b00
         } else {
@@ -87,7 +104,7 @@ module spi_buffer (
         // store any received spi char in output fifo
         if (have_output.q) {
             if (!fifo_out.full) {
-                fifo_out.din = tx_buf.q
+                fifo_out.din = rx_buf.q
                 fifo_out.wput = 1b1
                 have_output.d = 1b0
             }
@@ -98,10 +115,11 @@ module spi_buffer (
         } else  {               // SPI active
             if (spi.done) {
                 // echo received characters to SPI
-                tx_buf.d = spi.data_out
+                rx_buf.d = spi.data_out
                 spi.data_in = tx_buf.q
                 // output received spi char to the fifo
                 have_output.d = 1b1
+                have_input.d = 1b0
             } 
         } 
     }

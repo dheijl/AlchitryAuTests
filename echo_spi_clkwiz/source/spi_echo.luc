@@ -14,7 +14,7 @@ module spi_echo (
     SPI Mode 2 = CPOL 1 CPHA 0
     SPI Mode 3 = CPOL 1 CPHA 1
     */    
-       
+    
     .clk(fst_clk) {
         .rst(rst) {
             spi_peripheral spi (#CPOL(0), #CPHA(1), 
@@ -53,11 +53,11 @@ module spi_echo (
         
         // sync the 200 MHz fifo with the 100 MHz output
         if (clock_syncer.q == 2b01) {
+            clock_syncer.d = 2b00
             if (! fifo_out.empty) {
                 out_buf.d = fifo_out.dout
                 rdy.d = 1b1
                 fifo_out.rget = 1b1
-                clock_syncer.d = 2b00
             }
         } else {
             rdy.d = 1b0
