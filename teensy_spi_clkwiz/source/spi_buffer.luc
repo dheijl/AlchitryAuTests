@@ -30,19 +30,17 @@ module spi_buffer #(BUFFER_SIZE = 256)
             fifo fifo_out(#WIDTH(8), #ENTRIES(BUFFER_SIZE)) // SPI data received 
             fifo fifo_in(#WIDTH(8), #ENTRIES(BUFFER_SIZE))  // data to transmit
         }
-        dff tx_buf[8]      // the SPI character to transmit
-        dff rx_buf[8]      // the received SPI character
         dff rdy            // the SPI char ready flag
-        dff have_output
-        dff have_input
-        dff clock_syncer[2]
         dff cs_reg
         dff data_in_reg[8]
+        dff new_data_in_reg
         dff data_out_reg[8]
+        dff have_input
+        dff have_output
         dff drq_reg
-        dff new_data_reg
+        dff spi_rx[8]
+        dff spi_tx[8]
     }
-    
     
     always {
         
@@ -65,62 +63,72 @@ module spi_buffer #(BUFFER_SIZE = 256)
         data_rdy = rdy.q
         data_in_full =  fifo_in.full
         drq = drq_reg.q
-        // inputs
-        new_data_reg.d = data_in_newdata
+        
+        // buffer inputs
         data_in_reg.d = data_in
+        new_data_in_reg.d = data_in_newdata
         
-        // make sure the first byte is ready when SPI transfer starts
-        if (! have_input.q && ! fifo_in.empty) {
-            tx_buf.d = fifo_in.dout
-            fifo_in.rget = 1b1
-            have_input.d = 1b1
-        } 
-        if (fifo_in.empty) {
-            drq_reg.d = 1b0
+        // return received SPI bytes from rx fifo
+        if (! fifo_out.empty) {
+            data_out_reg.d = fifo_out.dout
+            rdy.d = 1b1
+            fifo_out.rget = 1b1
+        } else {
+            data_out_reg.d = 8hff
+            rdy.d = 1b0
         }
-        spi.data_in = tx_buf.q
+        // store received SPI bytes in rx fifo
+        if (!fifo_out.full && have_output.q) {
+            fifo_out.din = spi_rx.q
+            fifo_out.wput = 1b1
+            have_output.d = 1b0
+        }
         
-        // sync the 200 MHz fifo with the 100 MHz output
-        if (clock_syncer.q == 2b01) {
-            if (! fifo_out.empty) {
-                data_out_reg.d = fifo_out.dout
-                rdy.d = 1b1
-                fifo_out.rget = 1b1
+        // store char to transmit in tx fifo
+        // and trigger tx on fifo full or newline 
+        if (!fifo_in.full && new_data_in_reg.q) {
+            if (data_in_reg.q == 8h0a) {
+                drq_reg.d = 1b1
             }
-            if (! fifo_in.full && new_data_reg.q) {
-                fifo_in.din = data_in_reg.q
+            fifo_in.din = data_in_reg.q
+            fifo_in.wput = 1b1
+        } 
+        if (fifo_in.full) {
+            drq_reg.d = 1b1
+        } else {
+            if (data_in_newdata) {
+                fifo_in.din = data_in
                 fifo_in.wput = 1b1
-                // trigger SPI transmission on newline or buffer full
-                if ((data_in_reg.q == 8h0a) || (fifo_in.full)) {
+                if (data_in == 8h0a) {
                     drq_reg.d = 1b1
                 }
             }
-            clock_syncer.d = 2b00
-        } else {
-            rdy.d = 1b0
         }
-        clock_syncer.d = clock_syncer.q + 1
+        if (fifo_in.empty) {
+            // nothing more to transmit
+            drq_reg.d = 1b0
+            spi_tx.d = 8hff
+            have_input.d = 1b0
+        } else {
+            // prepare the next SPI tx byte
+            if (! have_input.q ) {
+                spi_tx.d = fifo_in.dout
+                fifo_in.rget = 1b1
+                have_input.d = 1b1
+            }
+        }
+        // make sure the first byte is ready when SPI transfer starts
+        spi.data_in = spi_tx.q
         
-        // store any received spi char in output fifo
-        if (have_output.q) {
-            if (!fifo_out.full) {
-                fifo_out.din = rx_buf.q
-                fifo_out.wput = 1b1
-                have_output.d = 1b0
+        if (cs_reg.q == 1b0) { // SPI active
+            if (spi.done) {
+                // get the next SPI tx byte
+                spi.data_in = spi_tx.q
+                have_input.d = 1b0
+                // store received spi char 
+                spi_rx.d = spi.data_out
+                have_output.d = 1b1
             }
         } 
-        
-        if (cs_reg.q == 1b1) {        // SPI idle
-            tx_buf.d = 8hff
-        } else  {               // SPI active
-            if (spi.done) {
-                // echo received characters to SPI
-                rx_buf.d = spi.data_out
-                spi.data_in = tx_buf.q
-                // output received spi char to the fifo
-                have_output.d = 1b1
-                have_input.d = 1b0
-            } 
-        } 
-    }
+    } 
 }
