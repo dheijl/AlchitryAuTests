@@ -1,6 +1,6 @@
 module spi_buffer #(BUFFER_SIZE = 256)
 (
-    input fst_clk, // 200 MHz clock
+    input clk, // 100 MHz clock
     input rst,  // reset
     input sck,     // spi clock
     input sdi,     // spi mosi
@@ -10,8 +10,7 @@ module spi_buffer #(BUFFER_SIZE = 256)
     output data_in_full, // space available in fifo_in
     output sdo,    // spi miso
     output data_out[8], // received spi data from fifo_out 
-    output data_rdy,  // spi rcv fifo not empty
-    output drq        // request SPI transfer
+    output data_rdy  // spi rcv fifo not empty
 ) {
     /*
     SPI Mode 0 = CPOL 0 CPHA 0
@@ -20,7 +19,7 @@ module spi_buffer #(BUFFER_SIZE = 256)
     SPI Mode 3 = CPOL 1 CPHA 1
     */    
     
-    .clk(fst_clk) {
+    .clk(clk) {
         .rst(rst) {
             spi_peripheral spi (#CPOL(0), #CPHA(1), 
                 .cs(cs), 
@@ -37,7 +36,6 @@ module spi_buffer #(BUFFER_SIZE = 256)
         dff data_out_reg[8]
         dff have_input
         dff have_output
-        dff drq_reg
         dff spi_rx[8]
         dff spi_tx[8]
     }
@@ -62,14 +60,13 @@ module spi_buffer #(BUFFER_SIZE = 256)
         data_out = data_out_reg.q
         data_rdy = rdy.q
         data_in_full =  fifo_in.full
-        drq = drq_reg.q
         
         // buffer inputs
         data_in_reg.d = data_in
         new_data_in_reg.d = data_in_newdata
         
         // return received SPI bytes from rx fifo
-        if (! fifo_out.empty) {
+        if (fifo_out.empty == 1b0) {
             data_out_reg.d = fifo_out.dout
             rdy.d = 1b1
             fifo_out.rget = 1b1
@@ -78,37 +75,32 @@ module spi_buffer #(BUFFER_SIZE = 256)
             rdy.d = 1b0
         }
         // store received SPI bytes in rx fifo
-        if (!fifo_out.full && have_output.q) {
+        if ((fifo_out.full == 1b0) && (have_output.q == 1b1)) {
             fifo_out.din = spi_rx.q
             fifo_out.wput = 1b1
             have_output.d = 1b0
         }
         
-        // store char to transmit in tx fifo
-        // and trigger tx on fifo full or newline 
-        if (!fifo_in.full && new_data_in_reg.q) {
-            fifo_in.din = data_in_reg.q
-            fifo_in.wput = 1b1
-            if (data_in_reg.q == 8h0a) {
-                drq_reg.d = 1b1
-            }
-        } 
-        if (fifo_in.full) {
-            drq_reg.d = 1b1
-        } 
-        if (fifo_in.empty) {
-            // nothing more to transmit
-            drq_reg.d = 1b0
-            spi_tx.d = 8hff
+        // check transmit queue
+        if (fifo_in.empty == 1b1) {
+            // nothing to transmit
+            spi_tx.d = 8haa
             have_input.d = 1b0
-        } else {
+        }else {
             // prepare the next SPI tx byte
-            if (! have_input.q ) {
+            if (have_input.q == 1b0) {
                 spi_tx.d = fifo_in.dout
                 fifo_in.rget = 1b1
                 have_input.d = 1b1
             }
         }
+        // store input char to transmit in tx fifo
+        // and trigger tx on fifo full or newline 
+        if ((new_data_in_reg.q == 1b1) && (fifo_in.full == 1b0)) {
+            fifo_in.din = data_in_reg.q
+            fifo_in.wput = 1b1
+        }
+        
         // make sure the first byte is ready when SPI transfer starts
         spi.data_in = spi_tx.q
         
