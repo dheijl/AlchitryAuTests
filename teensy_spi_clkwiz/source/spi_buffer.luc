@@ -87,23 +87,15 @@ module spi_buffer #(BUFFER_SIZE = 256)
         // store char to transmit in tx fifo
         // and trigger tx on fifo full or newline 
         if (!fifo_in.full && new_data_in_reg.q) {
+            fifo_in.din = data_in_reg.q
+            fifo_in.wput = 1b1
             if (data_in_reg.q == 8h0a) {
                 drq_reg.d = 1b1
             }
-            fifo_in.din = data_in_reg.q
-            fifo_in.wput = 1b1
         } 
         if (fifo_in.full) {
             drq_reg.d = 1b1
-        } else {
-            if (data_in_newdata) {
-                fifo_in.din = data_in
-                fifo_in.wput = 1b1
-                if (data_in == 8h0a) {
-                    drq_reg.d = 1b1
-                }
-            }
-        }
+        } 
         if (fifo_in.empty) {
             // nothing more to transmit
             drq_reg.d = 1b0
