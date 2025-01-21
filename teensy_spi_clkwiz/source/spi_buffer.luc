@@ -28,14 +28,14 @@ module spi_buffer #(BUFFER_SIZE = 256)
             
             fifo fifo_out(#WIDTH(8), #ENTRIES(BUFFER_SIZE)) // SPI data received 
             fifo fifo_in(#WIDTH(8), #ENTRIES(BUFFER_SIZE))  // data to transmit
+            dff have_input
+            dff have_output
         }
         dff rdy            // the SPI char ready flag
         dff cs_reg
         dff data_in_reg[8]
         dff new_data_in_reg
         dff data_out_reg[8]
-        dff have_input
-        dff have_output
         dff spi_rx[8]
         dff spi_tx[8]
     }
@@ -88,13 +88,13 @@ module spi_buffer #(BUFFER_SIZE = 256)
         }
         
         // check transmit queue
-        if (fifo_in.empty == 1b1) {
-            // nothing to transmit
-            spi_tx.d = 8haa
-            have_input.d = 1b1
-        }else {
-            // prepare the next SPI tx byte
-            if (have_input.q == 1b0) {
+        if (have_input.q == 1b0) {
+            if (fifo_in.empty == 1b1) {
+                // nothing to transmit
+                spi_tx.d = 8hff
+                // but can be replaced before spi tx starts
+                have_input.d = 1b0
+            } else { // prepare the next SPI tx byte
                 spi_tx.d = fifo_in.dout
                 fifo_in.rget = 1b1
                 have_input.d = 1b1
