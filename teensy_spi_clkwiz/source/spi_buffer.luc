@@ -65,6 +65,12 @@ module spi_buffer #(BUFFER_SIZE = 256)
         data_in_reg.d = data_in
         new_data_in_reg.d = data_in_newdata
         
+        // store input char to transmit in tx fifo
+        // and trigger tx on fifo full or newline 
+        if ((new_data_in_reg.q == 1b1) && (fifo_in.full == 1b0)) {
+            fifo_in.din = data_in_reg.q
+            fifo_in.wput = 1b1
+        }
         // return received SPI bytes from rx fifo
         if (fifo_out.empty == 1b0) {
             data_out_reg.d = fifo_out.dout
@@ -85,7 +91,7 @@ module spi_buffer #(BUFFER_SIZE = 256)
         if (fifo_in.empty == 1b1) {
             // nothing to transmit
             spi_tx.d = 8haa
-            have_input.d = 1b0
+            have_input.d = 1b1
         }else {
             // prepare the next SPI tx byte
             if (have_input.q == 1b0) {
@@ -93,12 +99,6 @@ module spi_buffer #(BUFFER_SIZE = 256)
                 fifo_in.rget = 1b1
                 have_input.d = 1b1
             }
-        }
-        // store input char to transmit in tx fifo
-        // and trigger tx on fifo full or newline 
-        if ((new_data_in_reg.q == 1b1) && (fifo_in.full == 1b0)) {
-            fifo_in.din = data_in_reg.q
-            fifo_in.wput = 1b1
         }
         
         // make sure the first byte is ready when SPI transfer starts

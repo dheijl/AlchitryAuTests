@@ -23,6 +23,7 @@ module alchitry_top (
             uart_tx tx (#BAUD(1000000), #CLK_FREQ(100000000))   
         }
         dff drq_reg
+        dff cs_reg
     }
     
     
@@ -41,6 +42,7 @@ module alchitry_top (
         // connect spi
         sdo = spibuffer.sdo
         drq = drq_reg.q
+        cs_reg.d = cs
         
         // connect usb
         tx.block = 1b0
@@ -74,13 +76,13 @@ module alchitry_top (
         }
         // put received console characters in console echo buffer 
         // and in SPI transmit buffer
+        // assert drq if buffer full or newline to request spi transfer
         if ((rx.new_data == 1b1) && (echo.full  == 1b0)) {
             echo.din = rx.data
             echo.wput = 1b1
             if (spibuffer.data_in_full == 1b0) {
                 spibuffer.data_in = rx.data
                 spibuffer.data_in_newdata = 1b1
-                drq_reg.d = 1b0
                 if (rx.data == 8h0a) {
                     drq_reg.d = 1b1
                 }
@@ -88,6 +90,11 @@ module alchitry_top (
                 drq_reg.d = 1b1
             }
         } 
+        // if spi transfer requested and transfer started 
+        // (chip select is active): deassert drq
+        if ((drq_reg.q == 1b1) && (cs_reg.q == 1b0)) {
+            drq_reg.d = 1b0            
+        }
         // echo received characters (spi or console) to console
         if ((echo.empty == 1b0) && (tx.busy== 1b0)) {
             tx.data = echo.dout 
