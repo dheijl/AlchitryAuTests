@@ -106,11 +106,11 @@ module spi_buffer #(BUFFER_SIZE = 256)
         
         if (spi_active.q) { // SPI active
             if (spi.done) {
+                // store received spi char 
+                spi_rx.d = spi.data_out
                 // get the next SPI tx byte
                 spi.data_in = spi_tx.q
                 have_input.d = 1b0
-                // store received spi char 
-                spi_rx.d = spi.data_out
                 have_output.d = 1b1
             }
         } 
