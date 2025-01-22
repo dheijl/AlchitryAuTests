@@ -23,7 +23,7 @@ module alchitry_top (
             uart_tx tx (#BAUD(1000000), #CLK_FREQ(100000000))   
         }
         dff drq_reg
-        dff cs_reg
+        dff spi_busy
     }
     
     
@@ -35,6 +35,7 @@ module alchitry_top (
         .cs(cs)
     )
     
+    
     always {
         reset_cond.in = ~rst_n  // input raw inverted reset signal
         rst = reset_cond.out    // conditioned reset
@@ -42,7 +43,7 @@ module alchitry_top (
         // connect spi
         sdo = spibuffer.sdo
         drq = drq_reg.q
-        cs_reg.d = cs
+        spi_busy.d =  ~cs
         
         // connect usb
         tx.block = 1b0
@@ -70,33 +71,39 @@ module alchitry_top (
         led[7] = ~cs
         
         // put received SPI characters in console echo buffer
-        if ((spibuffer.data_rdy == 1b1) && (echo.full == 1b0)) {
+        if (spibuffer.data_rdy && !echo.full) {
             echo.din = spibuffer.data_out
             echo.wput = 1b1
         }
         // put received console characters in console echo buffer 
         // and in SPI transmit buffer
         // assert drq if buffer full or newline to request spi transfer
-        if ((rx.new_data == 1b1) && (echo.full  == 1b0)) {
-            echo.din = rx.data
-            echo.wput = 1b1
-            if (spibuffer.data_in_full == 1b0) {
-                spibuffer.data_in = rx.data
-                spibuffer.data_in_newdata = 1b1
-                if (rx.data == 8h0a) {
+        if (rx.new_data && !echo.full) {
+            // refuse input while SPI busy
+            if (spi_busy.q) { 
+                echo.din = 8hff
+                echo.wput = 1b1
+            } else {
+                // spi not busy, gather input until newline or buffer full
+                echo.din = rx.data
+                echo.wput = 1b1
+                if (!spibuffer.data_in_full) {
+                    spibuffer.data_in = rx.data
+                    spibuffer.data_in_newdata = 1b1
+                    if (rx.data == 8h0a) {
+                        drq_reg.d = 1b1
+                    }
+                } else {
                     drq_reg.d = 1b1
                 }
-            } else {
-                drq_reg.d = 1b1
             }
         } 
-        // if spi transfer requested and transfer started 
-        // (chip select is active): deassert drq
-        if ((drq_reg.q == 1b1) && (cs_reg.q == 1b0)) {
+        // if spi transfer requested and spi transfer busy: deassert drq
+        if (drq_reg.q && spi_busy.q) {
             drq_reg.d = 1b0            
         }
         // echo received characters (spi or console) to console
-        if ((echo.empty == 1b0) && (tx.busy== 1b0)) {
+        if (!echo.empty && !tx.busy) {
             tx.data = echo.dout 
             tx.new_data = 1b1
             echo.rget = 1b1

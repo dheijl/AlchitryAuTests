@@ -32,7 +32,7 @@ module spi_buffer #(BUFFER_SIZE = 256)
             dff have_output
         }
         dff rdy            // the SPI char ready flag
-        dff cs_reg
+        dff spi_active
         dff data_in_reg[8]
         dff new_data_in_reg
         dff data_out_reg[8]
@@ -44,7 +44,7 @@ module spi_buffer #(BUFFER_SIZE = 256)
         
         // connect spi
         sdo = spi.sdo
-        cs_reg.d = cs
+        spi_active.d = ~cs
         
         // initialize output fifo
         fifo_out.wput = 1b0
@@ -67,12 +67,12 @@ module spi_buffer #(BUFFER_SIZE = 256)
         
         // store input char to transmit in tx fifo
         // and trigger tx on fifo full or newline 
-        if ((new_data_in_reg.q == 1b1) && (fifo_in.full == 1b0)) {
+        if (new_data_in_reg.q && !fifo_in.full) {
             fifo_in.din = data_in_reg.q
             fifo_in.wput = 1b1
         }
         // return received SPI bytes from rx fifo
-        if (fifo_out.empty == 1b0) {
+        if (!fifo_out.empty) {
             data_out_reg.d = fifo_out.dout
             rdy.d = 1b1
             fifo_out.rget = 1b1
@@ -81,18 +81,18 @@ module spi_buffer #(BUFFER_SIZE = 256)
             rdy.d = 1b0
         }
         // store received SPI bytes in rx fifo
-        if ((fifo_out.full == 1b0) && (have_output.q == 1b1)) {
+        if (!fifo_out.full && have_output.q) {
             fifo_out.din = spi_rx.q
             fifo_out.wput = 1b1
             have_output.d = 1b0
         }
         
         // check transmit queue
-        if (have_input.q == 1b0) {
-            if (fifo_in.empty == 1b1) {
+        if (!have_input.q) {
+            if (fifo_in.empty) {
                 // nothing to transmit
                 spi_tx.d = 8hff
-                // but can be replaced before spi tx starts
+                // but can be replaced from fifo_in before spi tx starts
                 have_input.d = 1b0
             } else { // prepare the next SPI tx byte
                 spi_tx.d = fifo_in.dout
@@ -104,7 +104,7 @@ module spi_buffer #(BUFFER_SIZE = 256)
         // make sure the first byte is ready when SPI transfer starts
         spi.data_in = spi_tx.q
         
-        if (cs_reg.q == 1b0) { // SPI active
+        if (spi_active.q) { // SPI active
             if (spi.done) {
                 // get the next SPI tx byte
                 spi.data_in = spi_tx.q
