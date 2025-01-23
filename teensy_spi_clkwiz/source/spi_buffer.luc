@@ -28,16 +28,16 @@ module spi_buffer #(BUFFER_SIZE = 256)
             
             fifo fifo_out(#WIDTH(8), #ENTRIES(BUFFER_SIZE)) // SPI data received 
             fifo fifo_in(#WIDTH(8), #ENTRIES(BUFFER_SIZE))  // data to transmit
-            dff have_input
-            dff have_output
+            dff spi_rx[8]
+            dff spi_tx[8]
         }
+        dff have_input
+        dff have_output
         dff rdy            // the SPI char ready flag
         dff spi_active
         dff data_in_reg[8]
         dff new_data_in_reg
         dff data_out_reg[8]
-        dff spi_rx[8]
-        dff spi_tx[8]
     }
     
     always {
