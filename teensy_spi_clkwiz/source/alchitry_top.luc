@@ -12,6 +12,7 @@ module alchitry_top (
 ) {
     
     sig rst                 // reset signal
+    enum Spi_State{IDLE, REQUESTED, BUSY}
     
     .clk(clk) {
         // The reset conditioner is used to synchronize the reset signal to the FPGA
@@ -20,7 +21,8 @@ module alchitry_top (
         .rst(rst) {
             fifo echo (#WIDTH(8), #ENTRIES(256))
             uart_rx rx (#BAUD(1000000), #CLK_FREQ(100000000))
-            uart_tx tx (#BAUD(1000000), #CLK_FREQ(100000000))   
+            uart_tx tx (#BAUD(1000000), #CLK_FREQ(100000000))  
+            dff spi_state[$width(Spi_State)](#INIT(Spi_State.IDLE))
         }
         dff drq_reg
         dff spi_busy
@@ -70,38 +72,50 @@ module alchitry_top (
         led[6] = sck
         led[7] = ~cs
         
-        // put received SPI characters in console echo buffer
-        if (spibuffer.data_rdy && !echo.full) {
-            echo.din = spibuffer.data_out
-            echo.wput = 1b1
-        }
         // put received console characters in console echo buffer 
         // and in SPI transmit buffer
         // assert drq if buffer full or newline to request spi transfer
-        if (rx.new_data && !echo.full) {
-            // refuse input while SPI busy
-            if (spi_busy.q) { 
-                echo.din = 8hff
-                echo.wput = 1b1
-            } else {
-                // spi not busy, gather input until newline or buffer full
-                echo.din = rx.data
-                echo.wput = 1b1
-                if (!spibuffer.data_in_full) {
-                    spibuffer.data_in = rx.data
-                    spibuffer.data_in_newdata = 1b1
-                    if (rx.data == 8h0a) {
+        case (spi_state.q) {
+            Spi_State.IDLE: 
+                // spi not busy, gather input 
+                // assert drq on newline or buffer full to trigger SPI transfer
+                if (rx.new_data && !echo.full) {                
+                    echo.din = rx.data
+                    echo.wput = 1b1
+                    if (!spibuffer.data_in_full) {
+                        spibuffer.data_in = rx.data
+                        spibuffer.data_in_newdata = 1b1
+                        if (rx.data == 8h0a) {
+                            drq_reg.d = 1b1
+                            spi_state.d = Spi_State.REQUESTED
+                        }
+                    } else {
                         drq_reg.d = 1b1
+                        spi_state.d = Spi_State.REQUESTED
                     }
-                } else {
-                    drq_reg.d = 1b1
                 }
-            }
-        } 
-        // if spi transfer requested and spi transfer busy: deassert drq
-        if (drq_reg.q && spi_busy.q) {
-            drq_reg.d = 1b0            
+            Spi_State.REQUESTED:
+                // wait for chip select 
+                if (spi_busy.q) {
+                    spi_state.d = Spi_State.BUSY
+                } 
+            Spi_State.BUSY:
+                // deassert drq, SPI transfer has started
+               drq_reg.d = 1b0
+               // put received SPI characters in console echo buffer
+                if (spibuffer.data_rdy && !echo.full) {
+                    echo.din = spibuffer.data_out
+                    echo.wput = 1b1
+                }
+                // if transfer complete: deassert drq
+                if (!spi_busy.q) {
+                    spi_state.d = Spi_State.IDLE
+                 } 
+            default:
+                spi_state.d = Spi_State.IDLE
+                drq_reg.d = 1b0
         }
+        
         // echo received characters (spi or console) to console
         if (!echo.empty && !tx.busy) {
             tx.data = echo.dout 
