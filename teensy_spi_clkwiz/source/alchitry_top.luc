@@ -101,8 +101,8 @@ module alchitry_top (
                 } 
             Spi_State.BUSY:
                 // deassert drq, SPI transfer has started
-               drq_reg.d = 1b0
-               // put received SPI characters in console echo buffer
+                drq_reg.d = 1b0
+                // put received SPI characters in console echo buffer
                 if (spibuffer.data_rdy && !echo.full) {
                     echo.din = spibuffer.data_out
                     echo.wput = 1b1
@@ -110,7 +110,7 @@ module alchitry_top (
                 // if transfer complete: deassert drq
                 if (!spi_busy.q) {
                     spi_state.d = Spi_State.IDLE
-                 } 
+                } 
             default:
                 spi_state.d = Spi_State.IDLE
                 drq_reg.d = 1b0
