@@ -37,7 +37,7 @@ This is what you can expect with a 200 MHz clock (from the clock wizard):
     - Mode 0 and Mode 2: 26 MHz
     - Mode 1 and Mode 3: 29 MHz
 
-With a 100 MHz clock 23 MHz seems to be the limit.
+With a 100 MHz clock 20 MHz seems to be the limit.
  
 
 ********************************************************************************/
