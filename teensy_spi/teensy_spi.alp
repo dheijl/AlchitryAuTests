@@ -1,7 +1,7 @@
 {
     "project": {
         "type": "V1.3",
-        "projectName": "teensy_spi_clkwiz",
+        "projectName": "teensy_spi",
         "board": "Alchitry Au",
         "sourceFiles": [
             {
