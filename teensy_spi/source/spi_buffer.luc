@@ -1,6 +1,7 @@
 module spi_buffer #(BUFFER_SIZE = 256)
 (
-    input clk, // 100 MHz clock
+    input clk, // 200 MHz clock
+    input slow_clk, // 100 MHz clock
     input rst,  // reset
     input sck,     // spi clock
     input sdi,     // spi mosi
@@ -18,7 +19,10 @@ module spi_buffer #(BUFFER_SIZE = 256)
     SPI Mode 2 = CPOL 1 CPHA 0
     SPI Mode 3 = CPOL 1 CPHA 1
     */    
-    
+ 
+    fifo_generator_0 fifo_out(.rst(rst), .rd_clk(slow_clk), .wr_clk(clk) ) // SPI data received 
+    fifo_generator_0 fifo_in(.rst(rst), .rd_clk(clk), .wr_clk(slow_clk))   // data to transmit
+   
     .clk(clk) {
         .rst(rst) {
             spi_peripheral spi (#CPOL(0), #CPHA(1), 
@@ -26,8 +30,6 @@ module spi_buffer #(BUFFER_SIZE = 256)
                 .sck(sck), 
                 .sdi(sdi))
             
-            fifo fifo_out(#WIDTH(8), #ENTRIES(BUFFER_SIZE)) // SPI data received 
-            fifo fifo_in(#WIDTH(8), #ENTRIES(BUFFER_SIZE))  // data to transmit
             dff spi_rx[8]
             dff spi_tx[8]
         }
@@ -47,14 +49,14 @@ module spi_buffer #(BUFFER_SIZE = 256)
         spi_active.d = ~cs
         
         // initialize output fifo
-        fifo_out.wput = 1b0
+        fifo_out.wr_en = 1b0
         fifo_out.din = 8h00
-        fifo_out.rget = 1b0
+        fifo_out.rd_en = 1b0
         
         // initialize input fifo
-        fifo_in.wput = 1b0
+        fifo_in.wr_en = 1b0
         fifo_in.din = 8h00
-        fifo_in.rget = 1b0
+        fifo_in.rd_en = 1b0
         
         // drive outputs
         data_out = data_out_reg.q
@@ -69,13 +71,13 @@ module spi_buffer #(BUFFER_SIZE = 256)
         // and trigger tx on fifo full or newline 
         if (new_data_in_reg.q && !fifo_in.full) {
             fifo_in.din = data_in_reg.q
-            fifo_in.wput = 1b1
+            fifo_in.wr_en = 1b1
         }
         // return received SPI bytes from rx fifo
         if (!fifo_out.empty) {
             data_out_reg.d = fifo_out.dout
             rdy.d = 1b1
-            fifo_out.rget = 1b1
+            fifo_out.rd_en = 1b1
         } else {
             data_out_reg.d = 8hff
             rdy.d = 1b0
@@ -83,7 +85,7 @@ module spi_buffer #(BUFFER_SIZE = 256)
         // store received SPI bytes in rx fifo
         if (!fifo_out.full && have_output.q) {
             fifo_out.din = spi_rx.q
-            fifo_out.wput = 1b1
+            fifo_out.wr_en = 1b1
             have_output.d = 1b0
         }
         
@@ -96,7 +98,7 @@ module spi_buffer #(BUFFER_SIZE = 256)
                 have_input.d = 1b0
             } else { // prepare the next SPI tx byte
                 spi_tx.d = fifo_in.dout
-                fifo_in.rget = 1b1
+                fifo_in.rd_en = 1b1
                 have_input.d = 1b1
             }
         }
