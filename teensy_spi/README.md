@@ -22,6 +22,10 @@ With the Teensy this SPI code works reliably in both directions up to 20 MHz, an
 
 I then used the Vivado IP clock wizard to generate a 200 MHz clock to run the SPI module, while the top remained at 100 MHz. With the built-in asynchronous fifo the clock domain crossing caused timing problems, so I replaced it with the Vivado IP independent clock fifo IP. This proved reliable up to 28 MHz in both directions while crossing the clock domain without any trouble. 
 
+With a **300 MHz clock** for the SPI module it works reliable at **38 MHz** in both directions including the clock domain crossing. 
+
+With a 400 MHz clock I got timing errors when building.  
+
 I used an Ili9341 display with the Teensy to display test results at 30 MHz SPI without problems.
 
 
