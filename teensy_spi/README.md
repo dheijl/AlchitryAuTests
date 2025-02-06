@@ -20,6 +20,8 @@ So I did this SPI speedtest with a Teensy 4.1 (600 MHz NXP Cortex M7) to see wha
 
 With the Teensy this SPI code works reliably in both directions up to 20 MHz, anything above misses bits, and send/receive start missing bits at the same speed, contrary to the WIO test. In theory the 100 MHz AU  could go up to 25 MHz (with 4 SCK samples per SCK tick), but 20 MHz is not bad for "bit-banging". Perhaps not using 10 cm jumper wires but shorter soldered connections could even go higher.
 
+I then used the Vivado IP clock wizard to generate a 200 MHz clock to run the SPI module, while the top remained at 100 MHz. With the built-in asynchronous fifo the clock domain crossing caused timing problems, so I replaced it with the Vivado IP independent clock fifo IP. This proved reliable up to 28 MHz in both directions while crossing the clock domain without any trouble. 
+
 I used an Ili9341 display with the Teensy to display test results at 30 MHz SPI without problems.
 
 
