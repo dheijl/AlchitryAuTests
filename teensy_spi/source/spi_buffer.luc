@@ -1,5 +1,4 @@
-module spi_buffer #(BUFFER_SIZE = 256)
-(
+module spi_buffer (
     input clk, // 200 MHz clock
     input slow_clk, // 100 MHz clock
     input rst,  // reset

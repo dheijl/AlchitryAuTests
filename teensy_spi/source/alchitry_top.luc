@@ -30,7 +30,7 @@ module alchitry_top (
     clk_wiz_0 clkgen(.reset(rst), .clk_in1(clk))
     sig fast_clk = clkgen.clk_out2
     
-    spi_buffer spibuffer(#BUFFER_SIZE(256),
+    spi_buffer spibuffer (
         .clk(fast_clk),
         .slow_clk(clk),
         .rst(rst),
