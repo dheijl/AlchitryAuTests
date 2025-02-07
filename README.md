@@ -8,7 +8,9 @@
 
  - [WIO-SPIO](https://github.com/dheijl/AlchitryAuTests/tree/main/WIO_SPIO) : proof of concept SPI communication between AU with Br and Seed WIO terminal, and also between the AU and a Teensy 4.1.
 
- - [echo_spi](https://github.com/dheijl/AlchitryAuTests/tree/main/echo_spi) : SPI speed test between the AU with Br and a Teensy 4.1. The Teensy sends SPI burts with increasing frequency, and the AU echoes each byte as it is received. This goes on until what the receives no longer matches what it has sent.  
+ - [echo_spi](https://github.com/dheijl/AlchitryAuTests/tree/main/echo_spi) : SPI speed test between the AU with Br and a Teensy 4.1. The Teensy sends SPI bursts with increasing frequency, and the AU echoes each byte as it is received. This goes on until what the receives no longer matches what it has sent.
+
+ - [teensy-spi](https://github.com/dheijl/AlchitryAuTests/tree/main/teensy_spi): SPI test with a Vivado clock wizard IP generated clock and  Vivado IP FIFO (independent clock) to buffer SPI data and cross clock domains. Runs reliably at 38 MHz SPI speed with a 300 MHz clock in the AU for the SPI related code. 
 
  - the other folders are just experiments to arrive at the above, like following the Lucid V2 tutorials.
 
