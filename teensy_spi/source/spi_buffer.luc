@@ -19,8 +19,8 @@ module spi_buffer (
     SPI Mode 3 = CPOL 1 CPHA 1
     */    
  
-    fifo_generator_0 fifo_out(.rst(rst), .rd_clk(slow_clk), .wr_clk(clk) ) // SPI data received 
-    fifo_generator_0 fifo_in(.rst(rst), .rd_clk(clk), .wr_clk(slow_clk))   // data to transmit
+    fifo_256 fifo_out(.rst(rst), .rd_clk(slow_clk), .wr_clk(clk) ) // SPI data received 
+    fifo_256 fifo_in(.rst(rst), .rd_clk(clk), .wr_clk(slow_clk))   // data to transmit
    
     .clk(clk) {
         .rst(rst) {

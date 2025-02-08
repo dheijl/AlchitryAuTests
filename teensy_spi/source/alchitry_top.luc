@@ -27,8 +27,8 @@ module alchitry_top (
         dff drq_reg
         dff spi_busy
     }
-    clk_wiz_0 clkgen(.reset(rst), .clk_in1(clk))
-    sig fast_clk = clkgen.clk_out2
+    clk_300mhz clkwiz(.reset(rst), .clk_in1(clk))
+    sig fast_clk = clkwiz.clk_out2
     
     spi_buffer spibuffer (
         .clk(fast_clk),

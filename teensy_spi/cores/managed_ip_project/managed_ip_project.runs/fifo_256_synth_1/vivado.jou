@@ -1,0 +1,24 @@
+#-----------------------------------------------------------
+# Vivado v2024.1 (64-bit)
+# SW Build 5076996 on Wed May 22 18:36:09 MDT 2024
+# IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
+# SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
+# Start of session at: Sat Feb  8 15:30:43 2025
+# Process ID: 52840
+# Current directory: /home/danny/alchitry/teensy_spi/cores/managed_ip_project/managed_ip_project.runs/fifo_256_synth_1
+# Command line: vivado -log fifo_256.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source fifo_256.tcl
+# Log file: /home/danny/alchitry/teensy_spi/cores/managed_ip_project/managed_ip_project.runs/fifo_256_synth_1/fifo_256.vds
+# Journal file: /home/danny/alchitry/teensy_spi/cores/managed_ip_project/managed_ip_project.runs/fifo_256_synth_1/vivado.jou
+# Running On        :DannysLMDE
+# Platform          :Linuxmint
+# Operating System  :LMDE 6 (faye)
+# Processor Detail  :AMD Ryzen 7 7800X3D 8-Core Processor
+# CPU Frequency     :4551.806 MHz
+# CPU Physical cores:8
+# CPU Logical cores :16
+# Host memory       :32709 MB
+# Swap memory       :0 MB
+# Total Virtual     :32709 MB
+# Available Virtual :28844 MB
+#-----------------------------------------------------------
+source fifo_256.tcl -notrace

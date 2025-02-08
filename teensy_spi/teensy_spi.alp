@@ -70,30 +70,30 @@
         ],
         "ipCores": [
             {
-                "name": "fifo_generator_0",
+                "name": "fifo_256",
                 "stub": {
                     "file": {
                         "type": "DiskFile",
-                        "path": "cores/fifo_generator_0/fifo_generator_0_stub.v"
+                        "path": "cores/fifo_256/fifo_256_stub.v"
                     }
                 },
                 "files": [
                     {
-                        "path": "cores/fifo_generator_0/fifo_generator_0.xci"
+                        "path": "cores/fifo_256/fifo_256.xci"
                     }
                 ]
             },
             {
-                "name": "clk_wiz_0",
+                "name": "clk_300mhz",
                 "stub": {
                     "file": {
                         "type": "DiskFile",
-                        "path": "cores/clk_wiz_0/clk_wiz_0_stub.v"
+                        "path": "cores/clk_300mhz/clk_300mhz_stub.v"
                     }
                 },
                 "files": [
                     {
-                        "path": "cores/clk_wiz_0/clk_wiz_0.xci"
+                        "path": "cores/clk_300mhz/clk_300mhz.xci"
                     }
                 ]
             }
