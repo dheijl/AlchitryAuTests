@@ -85,12 +85,12 @@ module alchitry_top (
                     echo.din = rx.data
                     echo.wput = 1b1
                     if (!spibuffer.data_in_full) {
-                        spibuffer.data_in = rx.data
-                        spibuffer.data_in_newdata = 1b1
                         if (rx.data == 8h0a) {
                             drq_reg.d = 1b1
                             spi_state.d = Spi_State.REQUESTED
                         }
+                        spibuffer.data_in = rx.data
+                        spibuffer.data_in_newdata = 1b1
                     } else {
                         drq_reg.d = 1b1
                         spi_state.d = Spi_State.REQUESTED

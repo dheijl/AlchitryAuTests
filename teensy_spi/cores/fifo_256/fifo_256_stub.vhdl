@@ -2,10 +2,11 @@
 -- Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
 -- --------------------------------------------------------------------------------
 -- Tool Version: Vivado v.2024.1 (lin64) Build 5076996 Wed May 22 18:36:09 MDT 2024
--- Date        : Sat Feb  8 15:31:05 2025
+-- Date        : Wed Feb  5 20:47:18 2025
 -- Host        : DannysLMDE running 64-bit LMDE 6 (faye)
--- Command     : write_vhdl -force -mode synth_stub /home/danny/alchitry/teensy_spi/cores/fifo_256/fifo_256_stub.vhdl
--- Design      : fifo_256
+-- Command     : write_vhdl -force -mode synth_stub -rename_top fifo_256 -prefix
+--               fifo_256_ fifo_generator_0_stub.vhdl
+-- Design      : fifo_generator_0
 -- Purpose     : Stub declaration of top-level module interface
 -- Device      : xc7a35tftg256-1
 -- --------------------------------------------------------------------------------
