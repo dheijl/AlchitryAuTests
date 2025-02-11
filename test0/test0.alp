@@ -118,6 +118,18 @@
                     "type": "DiskFile",
                     "path": "source/spi_peripheral.luc"
                 }
+            },
+            {
+                "file": {
+                    "type": "Component",
+                    "path": "Memory/async_fifo.luc"
+                }
+            },
+            {
+                "file": {
+                    "type": "Component",
+                    "path": "Interfaces/ft.luc"
+                }
             }
         ],
         "constraintFiles": [
@@ -131,6 +143,12 @@
                 "file": {
                     "type": "DiskFile",
                     "path": "constraint/SPI.acf"
+                }
+            },
+            {
+                "file": {
+                    "type": "Component",
+                    "path": "Constraints/ft_v1.acf"
                 }
             }
         ],

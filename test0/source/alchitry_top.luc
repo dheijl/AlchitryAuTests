@@ -7,7 +7,16 @@ module alchitry_top (
     input sck,     // spi clock
     input sdi,     // spi mosi
     output sdo,    // spi miso
-    input cs        // spi slave select
+    input cs,        // spi slave select
+    input ft_clk,           // Ft 100MHz clock
+    input ft_rxf,           // Ft Rx Full (0 = data in rx buffer)
+    input ft_txe,           // Ft Tx Empty (0 = space in tx buffer)
+    inout ft_data[16],      // Ft data bus
+    inout ft_be[2],         // Ft byte enable
+    output ft_rd,           // Ft read flag (0 = read)
+    output ft_wr,           // Ft write flag (0 = write)
+    output ft_oe            // Ft output enable (0 = Ft, 1 = FPGA drives bus)
+    
 ) {
     /*
     SPI Mode 0 = CPOL 0 CPHA 0
@@ -30,6 +39,7 @@ module alchitry_top (
             spi_peripheral spi (#CPOL(0), #CPHA(0), .cs(cs), .sck(sck), .sdi(sdi))
             dff have_char[1]
             dff next_char[8]
+            ft ft(#BUS_WIDTH(16), #TX_BUFFER(256), #RX_BUFFER(256), .ft_clk(ft_clk), .ft_data(ft_data), .ft_be(ft_be))            
         }
     }
     
@@ -41,6 +51,18 @@ module alchitry_top (
         tx.block = 0
         rx.rx = usb_rx
         usb_tx = tx.tx
+        
+        ft.ft_rxf = ft_rxf
+        ft.ft_txe = ft_txe
+        ft_rd = ft.ft_rd
+        ft_wr = ft.ft_wr
+        ft_oe = ft.ft_oe
+
+        // echo data back
+        ft.ui_dout_get = !ft.ui_din_full
+        ft.ui_din_valid = !ft.ui_dout_empty
+        ft.ui_din = ft.ui_dout
+        ft.ui_din_be = ft.ui_dout_be
         
         // connect spi
         spi.data_in = 8h00
