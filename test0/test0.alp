@@ -68,12 +68,6 @@
             {
                 "file": {
                     "type": "Component",
-                    "path": "LED Effects/wave.luc"
-                }
-            },
-            {
-                "file": {
-                    "type": "Component",
                     "path": "Miscellaneous/counter.luc"
                 }
             },
@@ -122,13 +116,13 @@
             {
                 "file": {
                     "type": "Component",
-                    "path": "Memory/async_fifo.luc"
+                    "path": "Interfaces/ft.luc"
                 }
             },
             {
                 "file": {
                     "type": "Component",
-                    "path": "Interfaces/ft.luc"
+                    "path": "Memory/async_fifo.luc"
                 }
             }
         ],
