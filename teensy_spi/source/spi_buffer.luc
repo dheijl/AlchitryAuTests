@@ -1,6 +1,6 @@
 module spi_buffer (
-    input clk, // 200 MHz clock
-    input slow_clk, // 100 MHz clock
+    input clk, // 300 MHz "fast" clock from clock wizard
+    input slow_clk, // 100 MHz "slow" normal clock
     input rst,  // reset
     input sck,     // spi clock
     input sdi,     // spi mosi
