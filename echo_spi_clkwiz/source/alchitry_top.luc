@@ -45,7 +45,6 @@ module alchitry_top (
         drq = 1b0
         
         // connect usb
-        tx.block = 1b0
         rx.rx = usb_rx
         usb_tx = tx.tx
         

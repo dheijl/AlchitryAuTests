@@ -50,7 +50,6 @@ module alchitry_top (
         spi_busy.d =  ~cs
         
         // connect usb
-        tx.block = 1b0
         rx.rx = usb_rx
         usb_tx = tx.tx
         

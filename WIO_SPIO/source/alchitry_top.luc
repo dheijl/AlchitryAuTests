@@ -40,7 +40,6 @@ module alchitry_top (
         rst = reset_cond.out    // conditioned reset
         
         // connect usb
-        tx.block = 1b0
         rx.rx = usb_rx
         usb_tx = tx.tx
         
