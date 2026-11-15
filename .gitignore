@@ -2,3 +2,10 @@
 */Fake\ Pull-downs/**
 *.bit
 
+
+# hand-written Verilog builds (Vivado project + log)
+*/verilog/vivado/**
+*/verilog/build_out.log
+
+# Alchitry Labs project lock files
+.*.lock

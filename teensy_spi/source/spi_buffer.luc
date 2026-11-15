@@ -17,27 +17,37 @@ module spi_buffer (
     SPI Mode 1 = CPOL 0 CPHA 1
     SPI Mode 2 = CPOL 1 CPHA 0
     SPI Mode 3 = CPOL 1 CPHA 1
-    */    
- 
-    fifo_256 fifo_out(.rst(rst), .rd_clk(slow_clk), .wr_clk(clk) ) // SPI data received 
+    */
+
+    /*
+    Each FIFO port is driven from the clock domain it belongs to:
+      slow_clk: fifo_in write port, fifo_out read port, data_out / data_rdy
+      clk     : fifo_in read port, fifo_out write port, SPI peripheral
+    The FIFOs are the only crossing between the two domains.
+    fifo_256 is configured as First-Word-Fall-Through: dout is valid while
+    empty is 0, and rd_en pops it.
+    */
+
+    fifo_256 fifo_out(.rst(rst), .rd_clk(slow_clk), .wr_clk(clk) ) // SPI data received
     fifo_256 fifo_in(.rst(rst), .rd_clk(clk), .wr_clk(slow_clk))   // data to transmit
-   
+
     .clk(clk) {
         .rst(rst) {
-            spi_peripheral spi (#CPOL(0), #CPHA(1), 
-                .cs(cs), 
-                .sck(sck), 
+            spi_peripheral spi (#CPOL(0), #CPHA(1),
+                .cs(cs),
+                .sck(sck),
                 .sdi(sdi))
-            
+
             dff spi_rx[8]
             dff spi_tx[8]
         }
         dff have_input
         dff have_output
-        dff rdy            // the SPI char ready flag
         dff spi_active
-        dff data_in_reg[8]
-        dff new_data_in_reg
+    }
+
+    .clk(slow_clk) {
+        dff rdy            // the SPI char ready flag
         dff data_out_reg[8]
     }
     
@@ -62,14 +72,9 @@ module spi_buffer (
         data_rdy = rdy.q
         data_in_full =  fifo_in.full
         
-        // buffer inputs
-        data_in_reg.d = data_in
-        new_data_in_reg.d = data_in_newdata
-        
-        // store input char to transmit in tx fifo
-        // and trigger tx on fifo full or newline 
-        if (new_data_in_reg.q && !fifo_in.full) {
-            fifo_in.din = data_in_reg.q
+        // store input char to transmit in tx fifo (slow_clk domain)
+        if (data_in_newdata && !fifo_in.full) {
+            fifo_in.din = data_in
             fifo_in.wr_en = 1b1
         }
         // return received SPI bytes from rx fifo
