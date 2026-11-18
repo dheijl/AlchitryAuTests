@@ -6,6 +6,8 @@
 # hand-written Verilog builds (Vivado project + log)
 */verilog/vivado/**
 */verilog/build_out.log
+*/sck_verilog/vivado/**
+*/sck_verilog/sim/work/**
 
 # Alchitry Labs project lock files
 .*.lock

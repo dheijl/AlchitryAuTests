@@ -101,10 +101,10 @@ the pins this project already uses (A2=T8, A5=T5, A6=R5, A8=R8, A9=P8).
 ### Current SPI pins: none are clock-capable
 
 | Signal | Header | FPGA pin | Function |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | sck | A5 | T5 | IO_L23N_T3_A02_D18_14 |
 | sdi | A6 | R5 | IO_L23P_T3_A03_D19_14 |
-| cs  | A2 | T8 | IO_L21N_T3_DQS_A06_D22_14 |
+| cs | A2 | T8 | IO_L21N_T3_DQS_A06_D22_14 |
 | sdo | A9 | P8 | IO_L20P_T3_A08_D24_14 |
 | drq | A8 | R8 | IO_L20N_T3_A07_D23_14 |
 | (board clock) | CLOCK | N14 | IO_L12P_T1_MRCC_14 |
@@ -114,7 +114,7 @@ the pins this project already uses (A2=T8, A5=T5, A6=R5, A8=R8, A9=P8).
 A single-ended clock must go on the **P side** of a clock-capable pair.
 
 | Header | FPGA pin | Function | Use for SCK? |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **C45** | N11 | IO_L13P_T2_**MRCC**_14 | **Best choice**: multi-region and in the same bank (14) as the other SPI pins |
 | C42 | N13 | IO_L11P_T1_SRCC_14 | Yes (single-region) |
 | C48 | P10 | IO_L14P_T2_SRCC_14 | Yes (single-region) |
