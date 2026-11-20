@@ -25,7 +25,7 @@ module tb;
     );
 
     // collect received bytes on the system side
-    reg [7:0] rx_log [0:255];
+    reg [7:0] rx_log [0:2047];
     integer   rx_n = 0;
     always @(posedge clk) if (drdy) begin rx_log[rx_n] = dout; rx_n = rx_n + 1; end
 
@@ -60,7 +60,7 @@ module tb;
     endtask
 
     // full transfer of n bytes; MOSI = base+i, MISO checked against exp[]
-    reg [7:0] exp [0:31];
+    reg [7:0] exp [0:511];
     task transfer(input integer n, input [7:0] base);
         integer i; reg [7:0] b; integer rx0;
         begin
@@ -80,7 +80,29 @@ module tb;
         end
     endtask
 
-    integer k; reg [7:0] junk;
+    // queue nq bytes (txb, txb+1, ...), then an n-byte transfer (MOSI = rxb+i)
+    // that expects them on MISO, followed by 0xFF filler
+    task run(input integer nq, input integer n, input [7:0] txb, input [7:0] rxb);
+        integer j;
+        begin
+            for (j = 0; j < nq; j = j + 1) push(txb + j[7:0]);
+            #200;
+            for (j = 0; j < n; j = j + 1) exp[j] = (j < nq) ? txb + j[7:0] : 8'hff;
+            transfer(n, rxb);
+        end
+    endtask
+
+    // the same tests at an SCK rate that drifts against the 100 MHz clock
+    task rate_test(input real mhz);
+        begin
+            half = 500.0 / mhz;
+            run(20, 23, 8'h01, 8'h81);
+            run(5, 5, 8'h40, 8'hc0);        // odd: changes the buffer order
+            run(9, 12, 8'h60, 8'he0);
+        end
+    endtask
+
+    integer k, nfull; reg [7:0] junk; realtime t0;
     initial begin
         #103 rst = 0;
         #100;
@@ -114,6 +136,86 @@ module tb;
         #200;
         exp[0] = 8'h41; exp[1] = 8'h42; exp[2] = 8'hff;
         transfer(3, 8'h70);
+
+        // 6: SCK rates that drift in phase against the 100 MHz clock
+        rate_test(99.0);
+        rate_test(73.0);
+        rate_test(37.0);
+        rate_test(10.0);
+        half = 5.0;
+
+        // 7: fill to full: 255 in the FIFO + the 2 transmit buffers. A byte
+        //    written while full is dropped. Then send everything + 1 filler.
+        nfull = 0;
+        while (!din_full && nfull < 300) begin
+            push(8'h01 + nfull[7:0]);
+            #1 nfull = nfull + 1;            // let full update
+        end
+        if (nfull != 257) begin
+            $display("ERROR: full after %0d bytes, expected 257", nfull);
+            errors = errors + 1;
+        end
+        push(8'h00);                        // dropped
+        #200;
+        for (k = 0; k <= nfull; k = k + 1) exp[k] = (k < nfull) ? 8'h01 + k[7:0] : 8'hff;
+        transfer(nfull + 1, 8'h00);
+        if (din_full) begin
+            $display("ERROR: still full after emptying");
+            errors = errors + 1;
+        end
+
+        // 8: bytes written during a transfer. 4 queued; 4 more pushed during
+        //    byte 0 are sent as bytes 4..7. The FIFO runs dry at the end of
+        //    byte 6, so bytes 8..11 are filler, even though 2 more bytes are
+        //    pushed during byte 9. Those go out in the next transfer.
+        push(8'h80); push(8'h81); push(8'h82); push(8'h83);
+        #200;
+        for (k = 0; k < 12; k = k + 1) exp[k] = (k < 8) ? 8'h80 + k[7:0] : 8'hff;
+        t0 = $realtime;
+        fork
+            transfer(12, 8'h90);
+            begin
+                #(7.3 + 4 * half);
+                push(8'h84); push(8'h85); push(8'h86); push(8'h87);
+                #(t0 + 7.3 + 16 * half * 9 + 4 * half - $realtime);
+                push(8'h88); push(8'h89);
+            end
+        join
+        exp[0] = 8'h88; exp[1] = 8'h89; exp[2] = 8'hff;
+        transfer(3, 8'ha0);
+
+        // 9: reset while an odd number of bytes has been received, so the
+        //    SPI side is sending from buffer 1 (rx_toggle isn't reset)
+        if (rx_n % 2 == 0) run(1, 1, 8'h5a, 8'ha5);
+        if (rx_n % 2 != 1) begin
+            $display("ERROR: test 9 needs an odd byte count, have %0d", rx_n);
+            errors = errors + 1;
+        end
+        k = rx_n;
+        rst = 1; #50 rst = 0; #50;
+        if (rx_n != k) begin                // wrong order -> phantom byte
+            $display("ERROR: %0d bytes received during reset", rx_n - k);
+            errors = errors + 1;
+        end
+        run(3, 4, 8'hb0, 8'hb8);
+
+        // 10: reset in the middle of a transfer (data of that transfer is
+        //     not checked), then a normal transfer
+        push(8'hc0); push(8'hc1); push(8'hc2); push(8'hc3);
+        #200;
+        fork
+            begin
+                m_cs = 0; #7.3;
+                for (k = 0; k < 4; k = k + 1) xfer_byte(8'h11, junk, 8);
+                #3 m_cs = 1;
+            end
+            begin
+                #(7.3 + 16 * half * 1.5) rst = 1;
+                #50 rst = 0;
+            end
+        join
+        #200;
+        run(2, 3, 8'hd0, 8'hd8);            // FIFO was cleared: no 0xc2/0xc3
 
         $display("done: %0d bytes received, %0d errors", rx_n, errors);
         $finish;

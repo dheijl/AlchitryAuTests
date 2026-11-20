@@ -34,15 +34,31 @@ as CS goes low.
 | `src/spi_buffer.v`        | 100 MHz side: transmit FIFO, clock domain crossing, double tx buffer |
 | `src/alchitry_top.v`      | top level; SCK goes through a BUFR (regional clock buffer)           |
 | `constraint/alchitry.xdc` | pins, SCK clock, SPI I/O delays, clock crossing                      |
-| `sim/tb_spi_buffer.v`     | testbench: mode 1 controller at 100 MHz, 2 ns wire delays            |
+| `sim/tb_spi_buffer.v`     | testbench for `spi_buffer`: mode 1 controller, 2 ns wire delays      |
 
 ## Build and simulate
 
 ```sh
 vivado -mode batch -source build.tcl     # bitstream in vivado/teensy_spi.runs/impl_1/
 ./flash.sh                               # write it to the Au's flash (-r: RAM only)
-cd sim && ./run_sim.sh                   # expects "done: 27 bytes received, 0 errors"
+cd sim && ./run_sim.sh                   # expects "done: 472 bytes received, 0 errors"
 ```
+
+The testbench is a functional (zero-delay RTL) simulation of `spi_buffer`. It
+covers:
+
+- MISO/MOSI data and byte counts at 100 MHz SCK, including odd byte counts,
+  0xFF filler when the FIFO runs dry, and a transfer that stops mid-byte
+- SCK at 99, 73, 37 and 10 MHz, so SCK edges drift in phase against the
+  100 MHz clock
+- filling to full (257 bytes: 255 in the FIFO + 2 transmit buffers), and a
+  byte written while full being dropped
+- bytes written during a transfer, both before and after the FIFO has run dry
+- reset between transfers (with an even and an odd number of bytes sent so
+  far) and in the middle of a transfer
+
+It doesn't cover timing (the MISO path, synchroniser metastability), or
+anything outside `spi_buffer` (`alchitry_top`, the UART).
 
 ## Timing results (Vivado 2024.1, xc7a35t-1)
 
