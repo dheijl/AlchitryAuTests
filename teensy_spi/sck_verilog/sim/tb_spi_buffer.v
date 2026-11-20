@@ -52,9 +52,9 @@ module tb;
         end
     endtask
 
-    task check(input [7:0] got, input [7:0] exp, input [8*16-1:0] what);
-        if (got !== exp) begin
-            $display("ERROR %0s: got %02h expected %02h @%0t", what, got, exp, $time);
+    task check(input [7:0] got, input [7:0] want, input [8*16-1:0] what);
+        if (got !== want) begin
+            $display("ERROR %0s: got %02h expected %02h @%0t", what, got, want, $time);
             errors = errors + 1;
         end
     endtask
@@ -67,7 +67,7 @@ module tb;
             rx0 = rx_n;
             m_cs = 0; #7.3;                 // CS lead time
             for (i = 0; i < n; i = i + 1) begin
-                xfer_byte(base + i, b, 8);
+                xfer_byte(base + i[7:0], b, 8);
                 check(b, exp[i], "MISO");
             end
             #3 m_cs = 1;
@@ -76,7 +76,7 @@ module tb;
                 $display("ERROR: %0d bytes received, expected %0d", rx_n - rx0, n);
                 errors = errors + 1;
             end
-            for (i = 0; i < n; i = i + 1) check(rx_log[rx0 + i], base + i, "MOSI");
+            for (i = 0; i < n; i = i + 1) check(rx_log[rx0 + i], base + i[7:0], "MOSI");
         end
     endtask
 
@@ -86,13 +86,13 @@ module tb;
         #100;
 
         // 1: 16 bytes queued, 7-byte transfer (odd, buffer parity carries over)
-        for (k = 0; k < 16; k = k + 1) push(8'h10 + k);
+        for (k = 0; k < 16; k = k + 1) push(8'h10 + k[7:0]);
         #200;
-        for (k = 0; k < 7; k = k + 1) exp[k] = 8'h10 + k;
+        for (k = 0; k < 7; k = k + 1) exp[k] = 8'h10 + k[7:0];
         transfer(7, 8'ha0);
 
         // 2: 12-byte transfer, FIFO runs dry after 9 -> 0xFF filler
-        for (k = 0; k < 12; k = k + 1) exp[k] = (k < 9) ? 8'h17 + k : 8'hff;
+        for (k = 0; k < 12; k = k + 1) exp[k] = (k < 9) ? 8'h17 + k[7:0] : 8'hff;
         transfer(12, 8'hc0);
 
         // 3: new data, then a transfer that stops in the middle of byte 3

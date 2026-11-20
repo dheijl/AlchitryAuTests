@@ -14,6 +14,7 @@ module uart_rx #(
 
     localparam CLK_PER_BIT = (CLK_FREQ + BAUD) / BAUD - 1;
     localparam CTR_SIZE    = $clog2(CLK_PER_BIT);
+    // unsigned, counter-width compare values
 
     localparam [1:0] IDLE      = 2'd0,
                      WAIT_HALF = 2'd1,  // to the middle of the start bit
@@ -51,7 +52,7 @@ module uart_rx #(
             end
             WAIT_FULL: begin
                 ctr <= ctr + 1'b1;
-                if (ctr == CLK_PER_BIT - 1) begin
+                if (ctr == CTR_LAST) begin
                     saved_data <= {rx_s, saved_data[7:1]};   // LSB first
                     bit_ctr    <= bit_ctr + 1'b1;
                     ctr        <= 0;
@@ -64,6 +65,8 @@ module uart_rx #(
             WAIT_HIGH:
                 if (rx_s)
                     state <= IDLE;
+            default:
+                state <= IDLE;
         endcase
 
         if (rst)

@@ -15,6 +15,7 @@ module uart_tx #(
 
     localparam CLK_PER_BIT = (CLK_FREQ + BAUD) / BAUD - 1;
     localparam CTR_SIZE    = $clog2(CLK_PER_BIT);
+    localparam [CTR_SIZE-1:0] CTR_LAST = CLK_PER_BIT - 1;  // unsigned compare value
 
     localparam [1:0] IDLE      = 2'd0,
                      START_BIT = 2'd1,
@@ -30,7 +31,7 @@ module uart_tx #(
     assign tx   = tx_reg;
     assign busy = (state != IDLE);
 
-    wire bit_done = (ctr == CLK_PER_BIT - 1);
+    wire bit_done = (ctr == CTR_LAST);
 
     always @(posedge clk) begin
         case (state)
@@ -67,6 +68,8 @@ module uart_tx #(
                 if (bit_done)
                     state <= IDLE;
             end
+            default:
+                state <= IDLE;
         endcase
 
         if (rst)
