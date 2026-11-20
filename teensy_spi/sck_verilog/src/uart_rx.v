@@ -15,6 +15,8 @@ module uart_rx #(
     localparam CLK_PER_BIT = (CLK_FREQ + BAUD) / BAUD - 1;
     localparam CTR_SIZE    = $clog2(CLK_PER_BIT);
     // unsigned, counter-width compare values
+    localparam [CTR_SIZE-1:0] CTR_HALF = CLK_PER_BIT >> 1;
+    localparam [CTR_SIZE-1:0] CTR_LAST = CLK_PER_BIT - 1;
 
     localparam [1:0] IDLE      = 2'd0,
                      WAIT_HALF = 2'd1,  // to the middle of the start bit
@@ -45,7 +47,7 @@ module uart_rx #(
             end
             WAIT_HALF: begin
                 ctr <= ctr + 1'b1;
-                if (ctr == (CLK_PER_BIT >> 1)) begin
+                if (ctr == CTR_HALF) begin
                     ctr   <= 0;
                     state <= WAIT_FULL;
                 end
