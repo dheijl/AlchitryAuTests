@@ -27,6 +27,7 @@ foreach mhz $rates {
     # same name, so the I/O delays in alchitry.xdc follow the new period
     create_clock -period $per -name sck -waveform [list 0.000 $half] [get_ports sck]
 
+    set f ./vivado/timing_spi_${mhz}.rpt
     report_timing -from [get_ports sdi] -delay_type min_max -max_paths 4 -file $f
     report_timing -to   [get_ports sdo] -delay_type min_max -max_paths 4 -file $f -append
     report_timing -from [get_clocks sck]   -to [get_clocks clk_0] -max_paths 4 -file $f -append
