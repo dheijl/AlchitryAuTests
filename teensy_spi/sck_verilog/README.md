@@ -69,12 +69,18 @@ both give the same data, only the timing differs.
 
 ## Timing results (Vivado 2024.1, xc7a35t-1)
 
+Run `vivado -mode batch -nojournal -nolog -source timing.tcl` after a build.
+It writes the reports to `vivado/` and prints a slack table for SCK at 75 and
+100 MHz (edit `rates` in the script for others).
+
 - SCK is constrained at **75 MHz** (13.33 ns): all constraints met.
-- **MOSI** meets timing at 100 MHz with ~1.8 ns slack.
-- **MISO** fails at 100 MHz by ~2.8 ns. SCK pin to SDO pin is ~9.8 ns, and the
-  constraint adds an assumed 3 ns for controller setup plus wires.
-- Change the `create_clock` period for `sck` in `alchitry.xdc` to check
-  another rate.
+- **MOSI** meets timing at 100 MHz with ~1.7 ns slack (limit ~150 MHz).
+- **MISO** fails at 100 MHz by ~2.7 ns (limit ~79 MHz). SCK pin to SDO pin is
+  ~9.7 ns: SCK input buffer + BUFR 3.3 ns, flip-flop + bit select 1.5 ns,
+  route to the pin 1.7 ns, output buffer 3.2 ns. The constraint adds an
+  assumed 3 ns for controller setup plus wires.
+- These are slow-corner (worst case) numbers; a board at room temperature is
+  usually noticeably faster.
 
 ## Things to know
 
