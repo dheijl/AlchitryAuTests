@@ -77,6 +77,52 @@ module tb;
                 errors = errors + 1;
             end
             for (i = 0; i < n; i = i + 1) check(rx_log[rx0 + i], base + i[7:0], "MOSI");
+            check_z;
+        end
+    endtask
+
+    // SDO must be released (tri-stated) while CS is high
+    task check_z;
+        if (sdo !== 1'bz) begin
+            $display("ERROR: sdo = %b while CS is high @%0t", sdo, $time);
+            errors = errors + 1;
+        end
+    endtask
+
+    // transfer with CS edges close to SCK edges. CS falls `lead` ns before
+    // the first rising edge. lag >= 0: CS rises `lag` ns after the last
+    // falling edge. lag < 0: CS rises -lag ns before the last falling edge,
+    // so the last byte is incomplete and must not be received.
+    task transfer_edges(input integer n, input [7:0] base, input real lead, input real lag);
+        integer i, j, nexp, rx0; reg [7:0] o, b; real d;  // xsim rejects #(-lag)
+        begin
+            rx0  = rx_n;
+            nexp = (lag < 0) ? n - 1 : n;
+            m_cs = 0; #(lead);
+            for (i = 0; i < n; i = i + 1) begin
+                o = base + i[7:0];
+                for (j = 7; j >= 0; j = j - 1) begin
+                    m_sck = 1; m_mosi = o[j];
+                    if (i == n - 1 && j == 0 && lag < 0) begin
+                        d = half + lag; #(d) m_cs = 1;
+                        d = 0.0 - lag;  #(d) m_sck = 0;
+                    end else begin
+                        #(half);
+                        m_sck = 0; b[j] = m_miso;
+                        if (i == n - 1 && j == 0) #(lag);
+                        else #(half);
+                    end
+                end
+                if (i < nexp) check(b, exp[i], "MISO");
+            end
+            m_cs = 1;
+            #200;
+            if (rx_n - rx0 != nexp) begin
+                $display("ERROR: %0d bytes received, expected %0d", rx_n - rx0, nexp);
+                errors = errors + 1;
+            end
+            for (i = 0; i < nexp; i = i + 1) check(rx_log[rx0 + i], base + i[7:0], "MOSI");
+            check_z;
         end
     endtask
 
@@ -102,7 +148,7 @@ module tb;
         end
     endtask
 
-    integer k, nfull; reg [7:0] junk; realtime t0;
+    integer k, nfull, nrx; reg [7:0] junk; realtime t0;
     initial begin
         #103 rst = 0;
         #100;
@@ -216,6 +262,38 @@ module tb;
         join
         #200;
         run(2, 3, 8'hd0, 8'hd8);            // FIFO was cleared: no 0xc2/0xc3
+
+        // 11a: CS falls 0.5 ns before the first rising SCK edge and rises
+        //      0.5 ns after the last falling edge: all 4 bytes count
+        for (k = 0; k < 4; k = k + 1) begin push(8'he0 + k[7:0]); exp[k] = 8'he0 + k[7:0]; end
+        #200;
+        transfer_edges(4, 8'h20, 0.5, 0.5);
+
+        // 11b: CS rises 0.5 ns before the last falling edge: byte 3 is
+        //      incomplete, so it isn't received and 0xf3 is sent again
+        for (k = 0; k < 4; k = k + 1) begin push(8'hf0 + k[7:0]); exp[k] = 8'hf0 + k[7:0]; end
+        #200;
+        transfer_edges(4, 8'h30, 0.5, -0.5);
+        exp[0] = 8'hf3; exp[1] = 8'hff;
+        transfer(2, 8'h40);
+
+        // 11c: SCK toggling while CS is high (another device on the bus) is
+        //      ignored: nothing received, SDO stays released, nothing sent
+        push(8'h50); push(8'h51);
+        #200;
+        nrx = rx_n;
+        for (k = 0; k < 12; k = k + 1) begin
+            m_sck = 1; m_mosi = k[0]; #(half);
+            m_sck = 0; #(half);
+            check_z;
+        end
+        #200;
+        if (rx_n != nrx) begin
+            $display("ERROR: %0d bytes received while CS was high", rx_n - nrx);
+            errors = errors + 1;
+        end
+        exp[0] = 8'h50; exp[1] = 8'h51; exp[2] = 8'hff;
+        transfer(3, 8'h60);
 
         $display("done: %0d bytes received, %0d errors", rx_n, errors);
         $finish;

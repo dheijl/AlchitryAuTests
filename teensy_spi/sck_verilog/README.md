@@ -41,11 +41,11 @@ as CS goes low.
 ```sh
 vivado -mode batch -source build.tcl     # bitstream in vivado/teensy_spi.runs/impl_1/
 ./flash.sh                               # write it to the Au's flash (-r: RAM only)
-cd sim && ./run_sim.sh                   # expects "done: 472 bytes received, 0 errors"
+cd sim && ./run_sim.sh                   # expects "done: 484 bytes received, 0 errors"
 ```
 
-The testbench is a functional (zero-delay RTL) simulation of `spi_buffer`. It
-covers:
+The testbench is a functional (zero-delay RTL) simulation of `spi_buffer`,
+which includes `spi_peripheral`. It covers:
 
 - MISO/MOSI data and byte counts at 100 MHz SCK, including odd byte counts,
   0xFF filler when the FIFO runs dry, and a transfer that stops mid-byte
@@ -56,9 +56,16 @@ covers:
 - bytes written during a transfer, both before and after the FIFO has run dry
 - reset between transfers (with an even and an odd number of bytes sent so
   far) and in the middle of a transfer
+- CS edges 0.5 ns from SCK edges: CS falling just before the first rising
+  edge, rising just after the last falling edge (byte counts) or just before
+  it (byte is incomplete and sent again)
+- SCK toggling while CS is high is ignored, and SDO is tri-stated whenever CS
+  is high
 
 It doesn't cover timing (the MISO path, synchroniser metastability), or
-anything outside `spi_buffer` (`alchitry_top`, the UART).
+anything outside `spi_buffer` (`alchitry_top`, the UART). It also can't tell
+whether MISO changes on the falling edge (as designed) or the rising edge:
+both give the same data, only the timing differs.
 
 ## Timing results (Vivado 2024.1, xc7a35t-1)
 
