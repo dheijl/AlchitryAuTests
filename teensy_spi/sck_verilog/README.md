@@ -41,6 +41,7 @@ as CS goes low.
 ```sh
 vivado -mode batch -source build.tcl     # bitstream in vivado/teensy_spi.runs/impl_1/
 ./flash.sh                               # write it to the Au's flash (-r: RAM only)
+./serial_test.py -n 100 --teensy auto    # round trip over serial + SPI with the Teensy
 cd sim && ./run_sim.sh                   # expects "done: 484 bytes received, 0 errors"
 ```
 
