@@ -2,7 +2,6 @@
 
 SPI speed test between the AU with Br and a Teensy 4.1.
 
-
 Wiring:
 
 - cs = A2 -> Teensy pin 0 (yellow)
@@ -16,19 +15,16 @@ Wiring:
 
 When [testing SPI](https://github.com/dheijl/AlchitryAuTests/tree/main/WIO_SPIO) with the WIO terminal (120 MHz SAMD51), I could get the AU to receive correctly at 24 MHz, but the WIO got garbage at any speed above 12 MHz.
 
-So I did this SPI speedtest with a Teensy 4.1 (600 MHz NXP Cortex M7) to see what would happen. 
+So I did this SPI speedtest with a Teensy 4.1 (600 MHz NXP Cortex M7) to see what would happen.
 
 With the Teensy this SPI code works reliably in both directions up to 20 MHz, anything above misses bits, and send/receive start missing bits at the same speed, contrary to the WIO test. In theory the 100 MHz AU  could go up to 25 MHz (with 4 SCK samples per SCK tick), but 20 MHz is not bad for "bit-banging". Perhaps not using 10 cm jumper wires but shorter soldered connections could even go higher.
 
-I then used the Vivado IP clock wizard to generate a 200 MHz clock to run the SPI module, while the top remained at 100 MHz. With the built-in asynchronous fifo the clock domain crossing caused timing problems, so I replaced it with the Vivado IP independent clock fifo IP. This proved reliable up to 28 MHz in both directions while crossing the clock domain without any trouble. 
+I then used the Vivado IP clock wizard to generate a 200 MHz clock to run the SPI module, while the top remained at 100 MHz. With the built-in asynchronous fifo the clock domain crossing caused timing problems, so I replaced it with the Vivado IP independent clock fifo IP. This proved reliable up to 28 MHz in both directions while crossing the clock domain without any trouble.
 
-With a **300 MHz clock** for the SPI module it works reliable at **38 MHz** in both directions including the clock domain crossing. 
+With a **300 MHz clock** for the SPI module it works reliable at **38 MHz** in both directions including the clock domain crossing.
 
 With a 400 MHz clock I got timing errors when building.  
 
 I used an Ili9341 display with the Teensy to display test results at 30 MHz SPI without problems.
 
-
-The Teensy project is [here](https://github.com/dheijl/Teensy_SPI).
-
-
+[The Teensy project is here](<https://github.com/dheijl/Teensy_SPI>).

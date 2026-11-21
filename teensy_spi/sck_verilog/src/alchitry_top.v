@@ -5,6 +5,27 @@
 // the SPI controller (Teensy) to start a transfer. Bytes received over SPI are
 // echoed to the serial port as well.
 
+/*
+
+Replacement of Alchitry IDE to dive the serial port:
+
+Which port: the Au’s USB chip shows up as two ports, normally /dev/ttyUSB0 and /dev/ttyUSB1.
+The first is used for loading the FPGA and the second is the UART, so it’s usually /dev/ttyUSB1.
+With the board plugged in, ls -l /dev/serial/by-id/ should show it as the entry ending in -if01-port0.
+
+Using picocom:
+
+picocom -b 1000000 --omap crlf --imap lfcrlf /dev/ttyUSB1
+--omap crlf makes Enter send a newline (0x0A) instead of a carriage return.
+The FPGA only raises DRQ on 0x0A (or when the SPI buffer is full),
+so without this the Teensy never gets asked to start a transfer.
+--imap lfcrlf puts each incoming line on a new line in the terminal.
+Local echo isn’t needed: the FPGA echoes every character itself. Each typed character appears straight away.
+After the Teensy’s SPI transfer, the bytes it sent on MOSI appear as well.
+To quit, press Ctrl-A then Ctrl-X.
+
+*/
+
 module alchitry_top (
     input  wire       clk,      // 100 MHz
     input  wire       rst_n,    // reset button, active low
