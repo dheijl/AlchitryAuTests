@@ -8,6 +8,9 @@
 */verilog/build_out.log
 */sck_verilog/vivado/**
 */sck_verilog/sim/work/**
+*/sck_sv/vivado/**
+*/sck_sv/sim/work/**
+*/sck_sv/.Xil/**
 
 # Alchitry Labs project lock files
 .*.lock

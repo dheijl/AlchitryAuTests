@@ -1,0 +1,7 @@
+{
+  "flags": "--timescale 1ns/1ps",
+  "index": [
+    { "dirs": ["src", "sim"] },
+    { "dirs": ["/home/danny/tools/Xilinx/Vivado/2024.1/data/verilog/src/unisims"] }
+  ]
+}

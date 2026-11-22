@@ -1,0 +1,178 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="870" viewBox="0 0 1000 870"
+     font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="12">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#333"/>
+    </marker>
+    <marker id="arrO" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#d9822b"/>
+    </marker>
+    <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="6" height="6" fill="#eeeeee"/>
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#bbbbbb" stroke-width="2"/>
+    </pattern>
+  </defs>
+
+  <rect width="1000" height="870" fill="#ffffff"/>
+
+  <!-- ============================================================ panel 1 -->
+  <text x="20" y="30" font-size="16" font-weight="bold">1. Clock domains and crossings</text>
+  <text x="20" y="48" fill="#555">orange = clock domain crossing (constraint in alchitry.xdc); CS is synchronised once, in cs_sync</text>
+
+  <!-- Teensy -->
+  <rect x="20" y="60" width="150" height="350" rx="6" fill="#f2f2f2" stroke="#777"/>
+  <text x="95" y="84" text-anchor="middle" font-weight="bold">Teensy</text>
+  <text x="95" y="100" text-anchor="middle" fill="#555">SPI controller, mode 1</text>
+  <g text-anchor="end" font-weight="bold">
+    <text x="162" y="149">SCK</text>
+    <text x="162" y="184">MOSI</text>
+    <text x="162" y="214">MISO</text>
+    <text x="162" y="259">CS</text>
+    <text x="162" y="402">DRQ</text>
+  </g>
+
+  <!-- SCK path: IBUF + BUFR -->
+  <line x1="170" y1="145" x2="215" y2="145" stroke="#333" marker-end="url(#arr)"/>
+  <rect x="215" y="133" width="60" height="24" fill="#fff" stroke="#333"/>
+  <text x="245" y="149" text-anchor="middle">IBUF</text>
+  <line x1="275" y1="145" x2="300" y2="145" stroke="#333" marker-end="url(#arr)"/>
+  <rect x="300" y="133" width="60" height="24" fill="#fff" stroke="#333"/>
+  <text x="330" y="149" text-anchor="middle">BUFR</text>
+  <line x1="360" y1="145" x2="400" y2="145" stroke="#333" marker-end="url(#arr)"/>
+  <text x="287" y="126" text-anchor="middle" font-size="11" fill="#555">C45 / N11 (MRCC) · ≈3.3 ns insertion</text>
+
+  <!-- MOSI / MISO -->
+  <line x1="170" y1="180" x2="400" y2="180" stroke="#333" marker-end="url(#arr)"/>
+  <text x="285" y="174" text-anchor="middle" font-size="11">sdi · input_delay 0…3 ns (after rise)</text>
+  <line x1="400" y1="210" x2="170" y2="210" stroke="#333" marker-end="url(#arr)"/>
+  <text x="285" y="204" text-anchor="middle" font-size="11">sdo · output_delay −1…3 ns (fall)</text>
+
+  <!-- SCK domain -->
+  <rect x="400" y="110" width="580" height="115" rx="6" fill="#efe8fb" stroke="#7b5ea7" stroke-width="1.5"/>
+  <text x="410" y="127" font-weight="bold" fill="#5a3f8a">SCK domain · spi_peripheral (clocked by sck_clk, negedge)</text>
+  <g fill="#fff" stroke="#7b5ea7">
+    <rect x="410" y="140" width="90" height="60" rx="4"/>
+    <rect x="510" y="140" width="90" height="60" rx="4"/>
+    <rect x="610" y="140" width="90" height="60" rx="4"/>
+    <rect x="710" y="140" width="90" height="60" rx="4"/>
+    <rect x="830" y="140" width="140" height="60" rx="4"/>
+  </g>
+  <g text-anchor="middle">
+    <text x="455" y="165">shift[6:0]</text><text x="455" y="182" font-size="11" fill="#555">MOSI bits</text>
+    <text x="555" y="165">bit_ct[2:0]</text><text x="555" y="182" font-size="11" fill="#555">async reset by CS</text>
+    <text x="655" y="165">rx_byte[7:0]</text><text x="655" y="182" font-size="11" fill="#555">every 8th bit</text>
+    <text x="755" y="165">rx_toggle</text><text x="755" y="182" font-size="11" fill="#555">flips per byte</text>
+    <text x="900" y="162">tx mux + bit select</text><text x="900" y="179" font-size="10" fill="#555">buf[rx_toggle][~bit_ct]</text>
+    <text x="900" y="193" font-size="10" fill="#555">→ sdo (z while CS high)</text>
+  </g>
+
+  <!-- clk_0 domain -->
+  <rect x="400" y="290" width="580" height="120" rx="6" fill="#e6f0fb" stroke="#3b73b9" stroke-width="1.5"/>
+  <text x="410" y="307" font-weight="bold" fill="#2a5a94">clk_0 domain · 100 MHz</text>
+  <g fill="#fff" stroke="#3b73b9">
+    <rect x="410" y="320" width="90" height="60" rx="4"/>
+    <rect x="610" y="320" width="90" height="60" rx="4"/>
+    <rect x="710" y="320" width="90" height="60" rx="4"/>
+    <rect x="830" y="320" width="140" height="60" rx="4"/>
+  </g>
+  <rect x="510" y="320" width="90" height="60" rx="4" fill="#fff" stroke="#3b73b9"/>
+  <line x1="500" y1="350" x2="510" y2="350" stroke="#333" marker-end="url(#arr)"/>
+  <g text-anchor="middle">
+    <text x="455" y="345">cs_sync</text><text x="455" y="362" font-size="11" fill="#555">2 FF → idle</text>
+    <text x="555" y="345">spi_busy</text><text x="555" y="362" font-size="11" fill="#555">+1 FF → FSM</text>
+    <text x="655" y="345">data_out</text><text x="655" y="362" font-size="11" fill="#555">data_rdy pulse</text>
+    <text x="755" y="345">rx_sync</text><text x="755" y="362" font-size="11" fill="#555">2 FF → rx_event</text>
+    <text x="900" y="345">tx_buf0 / tx_buf1</text><text x="900" y="362" font-size="11" fill="#555">← fifo_in (255 B)</text>
+  </g>
+  <text x="410" y="400" font-size="11" fill="#555">FSM IDLE → REQUESTED → BUSY · uart_rx / uart_tx 1 Mbaud · echo FIFO</text>
+
+  <!-- DRQ -->
+  <line x1="400" y1="398" x2="170" y2="398" stroke="#333" marker-end="url(#arr)"/>
+  <text x="285" y="392" text-anchor="middle" font-size="11">drq (registered, clk_0)</text>
+
+  <!-- CS -->
+  <line x1="170" y1="255" x2="455" y2="255" stroke="#333"/>
+  <circle cx="455" cy="255" r="3" fill="#333"/>
+  <line x1="455" y1="255" x2="455" y2="227" stroke="#333" marker-end="url(#arr)"/>
+  <line x1="455" y1="255" x2="455" y2="288" stroke="#333" marker-end="url(#arr)"/>
+  <text x="285" y="249" text-anchor="middle" font-size="11">cs · set_false_path</text>
+  <text x="285" y="272" text-anchor="middle" font-size="11" fill="#555">asynchronous to both clocks</text>
+
+  <!-- crossings -->
+  <line x1="655" y1="200" x2="655" y2="318" stroke="#d9822b" stroke-width="2" marker-end="url(#arrO)"/>
+  <line x1="755" y1="200" x2="755" y2="318" stroke="#d9822b" stroke-width="2" marker-end="url(#arrO)"/>
+  <text x="705" y="252" text-anchor="middle" font-size="11" fill="#d9822b" font-weight="bold">max_delay</text>
+  <text x="705" y="266" text-anchor="middle" font-size="11" fill="#d9822b" font-weight="bold">5 ns</text>
+  <line x1="900" y1="320" x2="900" y2="202" stroke="#d9822b" stroke-width="2" marker-end="url(#arrO)"/>
+  <text x="908" y="252" font-size="11" fill="#d9822b" font-weight="bold">max_delay</text>
+  <text x="908" y="266" font-size="11" fill="#d9822b" font-weight="bold">20 ns</text>
+
+  <!-- ============================================================ panel 2 -->
+  <text x="20" y="460" font-size="16" font-weight="bold">2. MISO path: launch on SCK fall, controller samples on the next fall (slow corner)</text>
+
+  <line x1="650" y1="496" x2="650" y2="590" stroke="#c0392b" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="646" y="490" text-anchor="end" font-size="11" fill="#c0392b" font-weight="bold">100 MHz = 10 ns · slack −2.7 ns ✘</text>
+  <line x1="816.7" y1="470" x2="816.7" y2="590" stroke="#2e8b57" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="812" y="478" text-anchor="end" font-size="11" fill="#2e8b57" font-weight="bold">75 MHz = 13.33 ns · slack +0.6 ns ✔</text>
+
+  <text x="20" y="522" font-weight="bold">MISO</text>
+  <text x="20" y="538" font-size="11" fill="#555">50 px / ns</text>
+  <g stroke="#fff" stroke-width="1">
+    <rect x="150" y="500" width="165" height="36" fill="#c9b8e8"/>
+    <rect x="315" y="500" width="75"  height="36" fill="#9f85d3"/>
+    <rect x="390" y="500" width="85"  height="36" fill="#9cc0e8"/>
+    <rect x="475" y="500" width="160" height="36" fill="#6fa3dc"/>
+    <rect x="635" y="500" width="150" height="36" fill="url(#hatch)"/>
+  </g>
+  <g text-anchor="middle" font-size="11">
+    <text x="232" y="515">IBUF + BUFR</text><text x="232" y="530">3.3 ns</text>
+    <text x="352" y="515">FF + mux</text><text x="352" y="530">1.5 ns</text>
+    <text x="432" y="515">route</text><text x="432" y="530">1.7 ns</text>
+    <text x="555" y="515">OBUF (FAST, 16 mA)</text><text x="555" y="530">3.2 ns</text>
+    <text x="710" y="515">ctrl setup + wire</text><text x="710" y="530">3.0 ns (assumed)</text>
+  </g>
+
+  <line x1="150" y1="548" x2="635" y2="548" stroke="#333" marker-start="url(#arr)" marker-end="url(#arr)"/>
+  <text x="392" y="562" text-anchor="middle" font-size="11">9.7 ns  SCK pin → SDO pin</text>
+  <line x1="150" y1="572" x2="785" y2="572" stroke="#333" marker-start="url(#arr)" marker-end="url(#arr)"/>
+  <text x="467" y="586" text-anchor="middle" font-size="11" font-weight="bold">12.7 ns needed → limit ≈ 79 MHz</text>
+
+  <text x="20" y="612" font-size="11" fill="#555">MOSI is captured half a period after the launching rise: 3 ns input delay, helped by the 3.3 ns clock insertion → +1.5 ns slack at 100 MHz, limit ≈ 140 MHz.</text>
+
+  <!-- ============================================================ panel 3 -->
+  <text x="20" y="650" font-size="16" font-weight="bold">3. Per-byte handshake at 100 MHz SCK (one byte = 80 ns)</text>
+
+  <line x1="150" y1="664" x2="150" y2="810" stroke="#7b5ea7" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <line x1="790" y1="664" x2="790" y2="810" stroke="#7b5ea7" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="154" y="676" font-size="11" fill="#5a3f8a">SCK fall #8, byte N: rx_byte + rx_toggle update, SDO switches buffer</text>
+  <text x="786" y="676" text-anchor="end" font-size="11" fill="#5a3f8a">byte N+1: freed buffer is used again</text>
+
+  <text x="20" y="704" font-size="11" font-weight="bold">sync</text>
+  <rect x="150" y="690" width="80"  height="22" fill="#d9822b"/>
+  <rect x="230" y="690" width="160" height="22" fill="#d9822b" opacity="0.45"/>
+  <text x="398" y="705" font-size="11">rx_toggle → rx_sync 2 FF → rx_event after 10…30 ns → data_rdy</text>
+
+  <text x="20" y="739" font-size="11" font-weight="bold">refill</text>
+  <rect x="150" y="725" width="320" height="22" fill="#6fa3dc"/>
+  <text x="310" y="740" text-anchor="middle" font-size="11">fifo_in → tx_buf[old], route ≤ 20 ns</text>
+  <text x="478" y="740" font-size="11">rewritten ≤ 40 ns after the byte ends</text>
+
+  <text x="20" y="774" font-size="11" font-weight="bold">margin</text>
+  <rect x="470" y="760" width="320" height="22" fill="#2e8b57" opacity="0.6"/>
+  <text x="630" y="775" text-anchor="middle" font-size="11" fill="#fff" font-weight="bold">≈ 40 ns margin</text>
+
+  <!-- time axis -->
+  <line x1="150" y1="810" x2="790" y2="810" stroke="#333"/>
+  <g font-size="10" text-anchor="middle" fill="#555">
+    <line x1="150" y1="810" x2="150" y2="816" stroke="#333"/><text x="150" y="828">0</text>
+    <line x1="230" y1="810" x2="230" y2="816" stroke="#333"/><text x="230" y="828">10</text>
+    <line x1="310" y1="810" x2="310" y2="816" stroke="#333"/><text x="310" y="828">20</text>
+    <line x1="390" y1="810" x2="390" y2="816" stroke="#333"/><text x="390" y="828">30</text>
+    <line x1="470" y1="810" x2="470" y2="816" stroke="#333"/><text x="470" y="828">40</text>
+    <line x1="550" y1="810" x2="550" y2="816" stroke="#333"/><text x="550" y="828">50</text>
+    <line x1="630" y1="810" x2="630" y2="816" stroke="#333"/><text x="630" y="828">60</text>
+    <line x1="710" y1="810" x2="710" y2="816" stroke="#333"/><text x="710" y="828">70</text>
+    <line x1="790" y1="810" x2="790" y2="816" stroke="#333"/><text x="790" y="828">80 ns</text>
+  </g>
+  <text x="20" y="856" font-size="11" fill="#555">Figures: Vivado 2024.1, xc7a35t-1, slow corner (timing.tcl). The 3 ns controller setup + wire is an assumption in alchitry.xdc, not a measurement.</text>
+</svg>
