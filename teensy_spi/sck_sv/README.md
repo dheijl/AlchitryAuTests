@@ -129,6 +129,29 @@ and timing paths are in [`docs/timing.md`](docs/timing.md).
 - These are slow-corner (worst case) numbers; a board at room temperature is
   usually noticeably faster.
 
+## Hardware test results
+
+Tested on the Au with the Teensy (Teensy_SPI sketch), jumper wires between
+the boards, `serial_test.py --length 196` (full 196-byte transfers):
+
+| SCK      | Test                         | Result                                   |
+| -------- | ---------------------------- | ---------------------------------------- |
+| 50 MHz   | `-n 1000 --teensy auto` (+ MISO) | 1000/1000 OK                         |
+| 75 MHz   | `-n 1000` (echo + MOSI)      | 1000/1000 OK                             |
+| 75 MHz   | `-n 1000 --teensy auto` (+ MISO) | 1000/1000 OK                         |
+| 100 MHz  | `-n 1000 --teensy auto`      | fails on the first line: MOSI byte 0 wrong (`7f` instead of `74`), no `RX:` line from the Teensy |
+
+75 MHz is the working rate. At 100 MHz it is MOSI (Teensy -> Au) that fails,
+not MISO as the timing analysis predicts. That points to the board-to-board
+wiring (ringing on SCK can produce extra clock edges) or the Teensy's own
+MOSI output timing, rather than the FPGA. The SCK the Teensy really produces
+at a 100 MHz setting wasn't measured.
+
+Before testing: make sure the Au runs this design's bitstream (`./flash.sh`)
+and SCK is on C45, and close `pio device monitor` when using `--teensy`.
+After a failed run, reset the Au: an aborted transfer can leave bytes in the
+SPI FIFO that spoil the next run.
+
 ## Things to know
 
 - The first bit reaches SDO about 10 ns after CS goes low. The Teensy's
