@@ -66,6 +66,27 @@ module spi_buffer (
     );
 
     // ------------------------------------------------------ synchronisers
+    // rx_sync: rx_toggle, synchronised to clk. rx_toggle is a register in
+    // the SCK domain, so to clk it is asynchronous and the first flip-flop
+    // can go metastable; the second one gives it a clock to settle.
+    // ASYNC_REG keeps both in one slice and tells the tools what they are.
+    //  - Only this one bit crosses through a synchroniser. rx_byte and the
+    //    tx buffers are multi-bit and are not synchronised: they are only
+    //    read/written when rx_sync says it is safe. rx_byte is stable for a
+    //    full byte time (8 SCK periods) after rx_toggle flips, and the buffer
+    //    just sent isn't used again for 8 SCK periods either. The synchroniser
+    //    delay (2-3 clocks) is far shorter than that.
+    //  - It is a toggle, not a pulse: a pulse in the SCK domain lasts one SCK
+    //    period and could be missed, and SCK stops after the last byte. A
+    //    toggle is a level, so every flip is seen, at any SCK rate.
+    //  - rx_sync[1] is compared with `cur`, the system-side copy of
+    //    rx_toggle: a difference means one byte has completed (rx_event),
+    //    and `cur` flips to match. Two flips within the synchroniser delay
+    //    would cancel out, but that would need a byte time of under 30 ns.
+    //  - rx_toggle isn't reset (CS doesn't reset it either), so on rst `cur`
+    //    is loaded from rx_sync[1] instead of 0: no spurious rx_event.
+    // cs_sync: CS, synchronised the same way; it gives `idle` (also used by
+    // the top level, see spi_busy there). Starts high: not selected.
     (* ASYNC_REG = "TRUE" *) logic [1:0] rx_sync = 2'b00;
     (* ASYNC_REG = "TRUE" *) logic [1:0] cs_sync = 2'b11;
 
