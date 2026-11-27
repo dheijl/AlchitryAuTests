@@ -27,8 +27,7 @@ Things to know:
   - The Au port is found as the `-if01-port0` entry in /dev/serial/by-id/
     (interface 1 of the Au's FTDI chip; interface 0 is used by the loader).
     Use --port if that doesn't match.
-  - For this design SCK is wired to C45, not A5. The pin comments in the
-    Teensy sketch still say A5.
+  - For this design SCK is wired to C45, not A5.
 """
 
 import argparse

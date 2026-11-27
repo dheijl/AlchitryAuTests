@@ -129,6 +129,31 @@ and timing paths are in [`docs/timing.md`](docs/timing.md).
 - These are slow-corner (worst case) numbers; a board at room temperature is
   usually noticeably faster.
 
+## Hardware setup
+
+The Au is the SPI peripheral, a Teensy 4.1 running
+[Teensy_SPI](https://github.com/dheijl/Teensy_SPI) (PlatformIO) is the
+controller, on its SPI1 port (pins in the table under
+[Wiring change](#wiring-change), plus GND). The PC talks to both over USB:
+
+```
+PC ──USB serial (1 Mbaud)──> Au ──SPI (mode 1)──> Teensy 4.1 ──USB serial──> PC
+                             <──────────────────                (TX:/RX: debug)
+```
+
+1. The PC sends a line to the Au's serial port. The Au echoes each character
+   and queues it in its SPI transmit FIFO.
+2. The newline raises DRQ. The Teensy waits for DRQ, then does one 196-byte
+   SPI transfer: it sends its fixed test text on MOSI and receives the queued
+   line (followed by 0xFF filler) on MISO.
+3. The Au echoes every byte it received over SPI to the serial port. The
+   Teensy prints what it sent and received as `TX:`/`RX:` hex lines on its
+   own USB serial port (and on its ILI9341 display).
+
+`serial_test.py` drives this loop and checks the echo, the MOSI bytes and,
+with `--teensy`, the MISO bytes from the Teensy's `RX:` line. The SCK rate is
+set in the Teensy sketch (`SPISettings` in `src/main.cpp`).
+
 ## Hardware test results
 
 Tested on the Au with the Teensy (Teensy_SPI sketch), jumper wires between
