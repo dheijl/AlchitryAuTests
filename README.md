@@ -10,7 +10,11 @@
 
  - [echo_spi](https://github.com/dheijl/AlchitryAuTests/tree/main/echo_spi) : SPI speed test between the AU with Br and a Teensy 4.1. The Teensy sends SPI bursts with increasing frequency, and the AU echoes each byte as it is received. This goes on until what the receives no longer matches what it has sent.
 
- - [teensy-spi](https://github.com/dheijl/AlchitryAuTests/tree/main/teensy_spi): SPI test with a Vivado clock wizard IP generated clock and  Vivado IP FIFO (independent clock) to buffer SPI data and cross clock domains. Runs reliably at 38 MHz SPI speed with a 300 MHz clock in the AU for the SPI related code. 
+ - [teensy_spi](https://github.com/dheijl/AlchitryAuTests/tree/main/teensy_spi): SPI speed tests between the AU with Br and a Teensy 4.1 ([Teensy_SPI](https://github.com/dheijl/Teensy_SPI) sketch). It contains several versions of the SPI peripheral:
+   - the Lucid project in the folder itself: oversamples SCK with a 300 MHz Vivado clock wizard clock and uses a Vivado independent clock FIFO IP to buffer the SPI data and cross clock domains. Runs reliably at 38 MHz SPI speed.
+   - [verilog](https://github.com/dheijl/AlchitryAuTests/tree/main/teensy_spi/verilog): the same oversampling design in plain Verilog, built with Vivado. `SPI_100MHz_notes.md` explains why it stops at about 40 MHz and what is needed to go faster.
+   - [sck_verilog](https://github.com/dheijl/AlchitryAuTests/tree/main/teensy_spi/sck_verilog): Verilog version where the SPI peripheral is clocked directly by SCK, and the rest runs on the 100 MHz board clock, so no clock wizard or FIFO IP is needed. SCK moves to the clock-capable pin C45. Includes a simulation testbench and timing scripts.
+   - [sck_sv](https://github.com/dheijl/AlchitryAuTests/tree/main/teensy_spi/sck_sv): the SystemVerilog version of sck_verilog, with build/sim/timing/flash scripts and a Python round-trip test (PC -> AU serial -> SPI -> Teensy -> AU -> PC). Tested reliable on hardware at 75 MHz SPI speed in both directions.
 
  - the other folders are just experiments to arrive at the above, like following the Lucid V2 tutorials.
 
