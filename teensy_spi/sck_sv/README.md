@@ -218,3 +218,9 @@ It loads the Vivado bitstream onto the Au using the Alchitry Labs command-line l
 - **Board type:** it defaults to `Au`, because these Alchitry projects use "Alchitry Au". If you have an Au V2, run it as `BOARD=AuV2-35T ./flash.sh`, or change the default in the script.
 - **Bin file:** `build.tcl` already tells Vivado to write a `.bin` file, which is the format the loader uses, so the build doesn't need any changes.
 - **Warnings:** the loader prints a few Java `WARNING: ... restricted method` lines every time it runs. They don't mean anything is wrong.
+
+## the actual hardware:
+
+<img width="3896" height="2112" alt="20261128_162450" src="https://github.com/user-attachments/assets/2172efb1-71eb-4e3e-afa4-31d4eeabf004" />
+
+
