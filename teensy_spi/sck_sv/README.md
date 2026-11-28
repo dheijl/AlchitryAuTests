@@ -129,6 +129,8 @@ and timing paths are in [`docs/timing.md`](docs/timing.md).
 - These are slow-corner (worst case) numbers; a board at room temperature is
   usually noticeably faster.
 
+<img width="1000" height="870" alt="timing" src="https://github.com/user-attachments/assets/83b548de-e68a-438a-ba10-2230eb690b01" />
+
 ## Hardware setup
 
 The Au is the SPI peripheral, a Teensy 4.1 running
