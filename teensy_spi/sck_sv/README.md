@@ -159,18 +159,32 @@ set in the Teensy sketch (`SPISettings` in `src/main.cpp`).
 Tested on the Au with the Teensy (Teensy_SPI sketch), jumper wires between
 the boards, `serial_test.py --length 196` (full 196-byte transfers):
 
-| SCK      | Test                         | Result                                   |
-| -------- | ---------------------------- | ---------------------------------------- |
-| 50 MHz   | `-n 1000 --teensy auto` (+ MISO) | 1000/1000 OK                         |
-| 75 MHz   | `-n 1000` (echo + MOSI)      | 1000/1000 OK                             |
-| 75 MHz   | `-n 1000 --teensy auto` (+ MISO) | 1000/1000 OK                         |
-| 100 MHz  | `-n 1000 --teensy auto`      | fails on the first line: MOSI byte 0 wrong (`7f` instead of `74`), no `RX:` line from the Teensy |
+| SCK requested | SCK actual | Test                         | Result                                   |
+| ------------- | ---------- | ---------------------------- | ---------------------------------------- |
+| 50 MHz        | 48 MHz     | `-n 1000 --teensy auto` (+ MISO) | 1000/1000 OK                         |
+| 75 MHz        | 60 MHz     | `-n 1000` (echo + MOSI)      | 1000/1000 OK                             |
+| 75 MHz        | 60 MHz     | `-n 1000 --teensy auto` (+ MISO) | 1000/1000 OK                         |
+| 79 MHz        | 60 MHz     | `-n 1000 --teensy auto` (+ MISO) | 1000/1000 OK                         |
+| 80 MHz        | 80 MHz     | `-n 1000 --teensy auto` (+ MISO) | 0/1000 OK: every line fails          |
+| 100 MHz       | 120 MHz    | `-n 1000 --teensy auto`      | fails on the first line: MOSI byte 0 wrong (`7f` instead of `74`), no `RX:` line from the Teensy |
 
-75 MHz is the working rate. At 100 MHz it is MOSI (Teensy -> Au) that fails,
-not MISO as the timing analysis predicts. That points to the board-to-board
-wiring (ringing on SCK can produce extra clock edges) or the Teensy's own
-MOSI output timing, rather than the FPGA. The SCK the Teensy really produces
-at a 100 MHz setting wasn't measured.
+The Teensy can't produce every SCK rate. Its SPI peripheral clock is
+720 MHz / 3 = 240 MHz, and SCK is that divided by a whole number of 2 or
+more, rounded to the nearest rate at or below the `SPISettings` request
+(Teensy core `libraries/SPI/SPI.cpp`). The possible rates are 120, 80, 60,
+48, 40 ... MHz, so any request from 61 to 79 MHz runs at 60 MHz.
+
+60 MHz is the highest working rate (requested as 75 MHz in the sketch); 80 MHz
+fails on every line. That agrees with the timing analysis, which puts the
+MISO limit at ~79 MHz in the slow corner, but the hardware can only say the
+real limit is somewhere between 60 and 80 MHz. To test in between, the LPSPI
+clock source or divider in `CCM_CBCMR` would have to be changed after
+`SPI1.begin()`.
+
+At 120 MHz (requested as 100 MHz) MOSI (Teensy -> Au) fails on the first byte.
+That is below the ~140 MHz MOSI timing limit, but with little margin left
+for the board-to-board wiring (ringing on SCK can produce extra clock edges)
+and the Teensy's own MOSI output timing.
 
 Before testing: make sure the Au runs this design's bitstream (`./flash.sh`)
 and SCK is on C45, and close `pio device monitor` when using `--teensy`.
